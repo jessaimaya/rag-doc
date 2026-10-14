@@ -55,11 +55,14 @@ npm run dev
 
 ## Documents
 
-The knowledge base is built only from public documents. Current source:
+The knowledge base is built only from public documents plus one fictional clinic FAQ. Titles, source URLs, categories and retrieval dates are in [`documents/manifest.json`](documents/manifest.json).
 
-- *Guía trámite Programación de cirugía* (public PDF).
-
-A `documents/manifest.json` with titles, source URLs and retrieval dates is planned.
+- IMSS procedure for temporary work disability (incapacidad).
+- ISSSTE medical services regulation.
+- CONAMED patient rights decalogues.
+- Insurer forms and policy terms from GNP, SURA and MetLife. Some are old versions, which is fine for a proof of concept.
+- A GNP guide for scheduling a surgery.
+- *Consultorio Médico Valle Verde* FAQ: a **fictional** clinic with made-up hours, prices, bank details and RFC.
 
 ## Roadmap
 
