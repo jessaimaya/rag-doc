@@ -22,7 +22,8 @@ COPY . .
 # Set dummy env vars for build (won't be used, just needed for build to complete)
 ENV DB_CONNECTION="postgresql://build:build@localhost:5432/build" \
     ANTHROPIC_API_KEY="build" \
-    VOYAGE_API_KEY="build"
+    VOYAGE_API_KEY="build" \
+    MASTRA_API_KEY="build"
 
 # Build during Docker build to save memory at runtime
 RUN NODE_OPTIONS='--max-old-space-size=2048' npm run build
@@ -30,7 +31,8 @@ RUN NODE_OPTIONS='--max-old-space-size=2048' npm run build
 # Remove dummy vars (Railway will inject real ones at runtime)
 ENV DB_CONNECTION="" \
     ANTHROPIC_API_KEY="" \
-    VOYAGE_API_KEY=""
+    VOYAGE_API_KEY="" \
+    MASTRA_API_KEY=""
 
 # Expose port (Railway will set PORT env variable)
 EXPOSE 3000

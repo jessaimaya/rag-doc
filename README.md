@@ -9,7 +9,7 @@ A Spanish-language RAG assistant that helps patients with medical insurance pape
 
 - Chat web UI (Next.js) that talks to a Mastra agent.
 - The agent searches a pgvector knowledge base (Voyage `voyage-3` embeddings) and answers in Spanish with steps, requirements and sources.
-- API key protection on the backend endpoints.
+- API key protection on the backend (fail-closed, constant-time comparison) and per-IP rate limiting on backend and chat route.
 
 ## Stack
 
@@ -30,7 +30,8 @@ You need Node 20.9+, a Postgres database with the `vector` extension, and API ke
 npm install
 cp .env.example .env   # then fill in the values
 npm run ingest         # loads the PDFs in documents/
-npm run dev            # backend on http://localhost:4111
+NODE_ENV=development npm run dev   # backend on http://localhost:4111, open API allowed in dev
+npm test               # unit tests
 ```
 
 Frontend:
@@ -48,7 +49,8 @@ npm run dev
 | `ANTHROPIC_API_KEY` | Claude API key |
 | `VOYAGE_API_KEY` | Voyage embeddings key |
 | `DATABASE_URL` (or `DB_CONNECTION`) | Postgres connection string |
-| `MASTRA_API_KEY` | Key clients must send in `x-api-key` |
+| `MASTRA_API_KEY` | Key clients must send in `x-api-key`. Required unless `NODE_ENV=development`; the server refuses to start without it |
+| `RATE_LIMIT_PER_MIN` | Max requests per minute per client IP (backend default 30, frontend default 10) |
 | `NEXT_PUBLIC_API_URL` | Backend URL used by the frontend |
 
 ## Documents
@@ -61,7 +63,7 @@ A `documents/manifest.json` with titles, source URLs and retrieval dates is plan
 
 ## Roadmap
 
-- Safer defaults: fail-closed auth, rate limiting, validated config.
+- Validated config at startup (one `config.ts`) and a single ingestion path.
 - A larger public corpus with structure-aware chunking and citations.
 - Retrieval evals (hit rate, MRR, faithfulness, refusals) comparing vector, hybrid and reranked search.
 - Appointment booking tools with guardrails.

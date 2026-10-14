@@ -1,64 +1,70 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { checkRateLimit, clientIp } from '@/lib/rate-limit';
+
+const MAX_MESSAGES = 30;
+const MAX_CONTENT_LENGTH = 2000;
+const RATE_LIMIT_PER_MIN = Number(process.env.RATE_LIMIT_PER_MIN) || 10;
+
+function isValidMessages(messages: unknown): messages is { role: string; content: string }[] {
+  return (
+    Array.isArray(messages) &&
+    messages.length > 0 &&
+    messages.length <= MAX_MESSAGES &&
+    messages.every(
+      (m) =>
+        m &&
+        (m.role === 'user' || m.role === 'assistant') &&
+        typeof m.content === 'string' &&
+        m.content.length <= MAX_CONTENT_LENGTH,
+    )
+  );
+}
 
 export async function POST(request: NextRequest) {
+  const limit = checkRateLimit(clientIp(request.headers), RATE_LIMIT_PER_MIN, 60_000);
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests, try again in a moment.' },
+      { status: 429, headers: { 'Retry-After': String(limit.retryAfterSec) } },
+    );
+  }
+
+  let body: { messages?: unknown };
   try {
-    const body = await request.json();
-    const { messages } = body;
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+  }
+  if (!isValidMessages(body.messages)) {
+    return NextResponse.json({ error: 'Invalid messages' }, { status: 400 });
+  }
 
-    // Use API_URL (server-side env var) which works at runtime
-    // For local dev, falls back to localhost
-    // For Railway, use the private network URL
-    const apiUrl = process.env.API_URL ||
-                   process.env.NEXT_PUBLIC_API_URL ||
-                   'http://localhost:4111';
+  // API_URL is the server-side backend URL (Railway private network); local dev falls back to localhost
+  const apiUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4111';
 
-    console.log('=== Chat API Route Debug ===');
-    console.log('API_URL env var:', process.env.API_URL);
-    console.log('NEXT_PUBLIC_API_URL env var:', process.env.NEXT_PUBLIC_API_URL);
-    console.log('Final apiUrl:', apiUrl);
-    console.log('Full URL:', `${apiUrl}/api/agents/insuranceAgent/generate`);
-    console.log('Messages count:', messages?.length);
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (process.env.MASTRA_API_KEY) {
+    headers['x-api-key'] = process.env.MASTRA_API_KEY;
+  }
 
-    // Add API key for authentication
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
-
-    // Add API key if configured
-    if (process.env.MASTRA_API_KEY) {
-      headers['x-api-key'] = process.env.MASTRA_API_KEY;
-    }
-
+  try {
     const response = await fetch(`${apiUrl}/api/agents/insuranceAgent/generate`, {
       method: 'POST',
       headers,
-      body: JSON.stringify({ messages }),
+      body: JSON.stringify({ messages: body.messages }),
     });
 
-    console.log('Response status:', response.status);
-
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('API error response:', errorText);
+      console.error('Backend error', response.status, await response.text());
       return NextResponse.json(
-        { error: 'Failed to get response from assistant', details: errorText, status: response.status },
-        { status: response.status }
+        { error: 'The assistant is not available right now.' },
+        { status: response.status === 429 ? 429 : 502 },
       );
     }
 
-    const data = await response.json();
-    console.log('Success! Response received');
-    return NextResponse.json(data);
+    return NextResponse.json(await response.json());
   } catch (error) {
-    console.error('Error in chat API route:', error);
-    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack');
-    return NextResponse.json(
-      {
-        error: 'Internal server error',
-        details: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined
-      },
-      { status: 500 }
-    );
+    console.error('Chat route error', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

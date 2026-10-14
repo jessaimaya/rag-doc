@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "tsx --test src/mastra/*.test.ts",
     "dev": "mastra dev",
     "build": "NODE_OPTIONS='--max-old-space-size=2048' mastra build",
     "start": "NODE_OPTIONS='--max-old-space-size=2048' mastra build && mastra start",

@@ -3,6 +3,14 @@ import { PinoLogger } from '@mastra/loggers';
 import { LibSQLStore } from '@mastra/libsql';
 import { insuranceAgent } from './agents/insurance-agent';
 import { insuranceVectorStore } from './knowledge/insurance-kb';
+import { createApiMiddleware, createRateLimiter, resolveApiKey } from './security';
+
+// Throws at startup when MASTRA_API_KEY is missing outside development
+const apiKey = resolveApiKey(process.env);
+const limiter = createRateLimiter({
+  limit: Number(process.env.RATE_LIMIT_PER_MIN) || 30,
+  windowMs: 60_000,
+});
 
 export const mastra = new Mastra({
   agents: { insuranceAgent },
@@ -28,29 +36,7 @@ export const mastra = new Mastra({
   server: {
     middleware: [
       {
-        // Protect all API endpoints with API key authentication
-        handler: async (c, next) => {
-          const apiKey = c.req.header('x-api-key') || c.req.header('authorization')?.replace('Bearer ', '');
-          const validApiKey = process.env.MASTRA_API_KEY;
-
-          // If no API key is configured, allow all requests (development mode)
-          if (!validApiKey) {
-            console.warn('⚠️  MASTRA_API_KEY not set - API is unprotected!');
-            return await next();
-          }
-
-          // Check if API key matches
-          if (!apiKey || apiKey !== validApiKey) {
-            console.warn('🔒 Unauthorized API access attempt from:', c.req.header('user-agent'));
-            return new Response(JSON.stringify({ error: 'Unauthorized', message: 'Valid API key required' }), {
-              status: 401,
-              headers: { 'Content-Type': 'application/json' }
-            });
-          }
-
-          // API key is valid, continue
-          return await next();
-        },
+        handler: createApiMiddleware({ apiKey, limiter }),
         path: '/api/*',
       },
     ],
