@@ -1,0 +1,74 @@
+[
+  {
+    "file": "Guía trámite Programación de cirugía.pdf",
+    "title": "Guía trámite Programación de cirugía",
+    "category": "Hospital Procedures",
+    "language": "es",
+    "source_url": null,
+    "retrieved": "2026-10-14",
+    "notes": "Original document. Source URL still to be filled in."
+  },
+  {
+    "file": "imss-incapacidad-9220-003-329.pdf",
+    "title": "IMSS procedimiento 9220-003-329 (incapacidad temporal para el trabajo)",
+    "category": "IMSS",
+    "language": "es",
+    "source_url": "https://www.imss.gob.mx/sites/all/statics/pdf/procedimientos/9220-003-329.pdf",
+    "retrieved": "2026-10-14",
+    "notes": "51 pages. Official IMSS internal procedure."
+  },
+  {
+    "file": "issste-reglamento-servicios-medicos.pdf",
+    "title": "Reglamento de Servicios Médicos del ISSSTE",
+    "category": "ISSSTE",
+    "language": "es",
+    "source_url": "https://normatecainterna.sep.gob.mx/storage/recursos/2026/02/iOPAxiWGuf-reglamento_servicios_medicos_issste.pdf",
+    "retrieved": "2026-10-14",
+    "notes": "Legal text hosted on SEP's internal normateca. Look for the same document on issste.gob.mx or DOF."
+  },
+  {
+    "file": "conamed-decalogos-derechos.pdf",
+    "title": "Decálogos de derechos y obligaciones de pacientes y profesionales de la salud",
+    "category": "Patient Rights",
+    "language": "es",
+    "source_url": "http://www.conamed.gob.mx/gobmx/decalogos/pdf/decalogosall.pdf",
+    "retrieved": "2026-10-14",
+    "notes": "62 pages. Published by CONAMED."
+  },
+  {
+    "file": "gnp-aviso-accidente.pdf",
+    "title": "GNP Aviso de accidente o enfermedad (gastos médicos)",
+    "category": "Private",
+    "language": "es",
+    "source_url": "https://www.aetnainternational.com/content/dam/aetna/pdfs/aetna-international/gnp/Aviso-Accidente.pdf",
+    "retrieved": "2026-10-14",
+    "notes": "Old form (internal code 0913, about 2013). Hosted on Aetna International. Replace with the current version from gnp.com.mx."
+  },
+  {
+    "file": "sura-aviso-accidente-enfermedad.pdf",
+    "title": "SURA Aviso de accidente o enfermedad",
+    "category": "Private",
+    "language": "es",
+    "source_url": "https://www.segurossura.com.mx/wp-content/uploads/2024/07/Aviso-de-Accidente-o-Enfermedad.pdf",
+    "retrieved": "2026-10-14",
+    "notes": "2024 upload."
+  },
+  {
+    "file": "metlife-condiciones-gmm-colectivo.pdf",
+    "title": "MetLife (Seguros Monterrey New York Life) condiciones generales GMM colectivo",
+    "category": "Private",
+    "language": "es",
+    "source_url": "https://www.mnyl.com.mx/sharedassets/pdf/condicionesgenerales/2022-condiciones-generales-gmm-colectivo.pdf",
+    "retrieved": "2026-10-14",
+    "notes": "33 pages. The file name says 2022 but the cover says June 2016. Group policy terms."
+  },
+  {
+    "file": "clinica-valle-verde-faq.pdf",
+    "title": "Preguntas frecuentes - Consultorio Médico Valle Verde (ficticio)",
+    "category": "Clinic FAQ",
+    "language": "es",
+    "source_url": null,
+    "retrieved": "2026-10-14",
+    "notes": "Fictional clinic written for this project. Source: clinica-valle-verde-faq.md."
+  }
+]
