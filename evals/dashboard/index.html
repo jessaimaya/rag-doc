@@ -142,7 +142,7 @@
       <div class="ev-tools"><div class="ev-seg" role="group" aria-label="Question type" id="ev-ret-tags">
         <button type="button" data-tag="all" aria-pressed="true">All questions</button><button type="button" data-tag="semantic" aria-pressed="false">Paraphrases</button><button type="button" data-tag="lexical" aria-pressed="false">Shared rare words</button><button type="button" data-tag="exact" aria-pressed="false">Codes and acronyms</button>
       </div></div>
-      <div class="ev-legend"><span><i style="background: var(--cds-chart-muted)"></i>Hit@5: a relevant passage in the top five</span><span><i class="ev-lg1"></i>Hit@1: the first result is relevant</span></div>
+      <div class="ev-legend"><span><i class="ev-lg1"></i>Hit@1: the first result is relevant</span><span><i style="background: var(--cds-chart-muted)"></i>Hit@5: a relevant passage in the top five</span></div>
       <div class="ev-chart" id="ev-retrieval" data-source="retrieval_summary"></div>
       <p class="ev-cap">Source: Retrieval metrics. Setups without "rerank" return the retriever's own order; "rerank" rescored the top 30 candidates with a cross-encoder.</p>
     </div>
@@ -441,7 +441,7 @@ npm run dashboard:data</code></pre><p class="ev-cap">Retrieval evals call the em
         bar(svg, 0, y, x(r.value), 12, colors[ri % colors.length]);
         svg.append('text').attr('class', 'ev-val').attr('x', x(r.value) + 6).attr('y', y + 10).text(fmt.pct(r.value));
         svg.append('rect').attr('class', 'ev-hit').attr('x', 0).attr('y', y - 2).attr('width', W).attr('height', 16)
-          .on('mousemove', e => showTip(e, `${run.judge} judge · ${run.label}`, [`${lab}: ${fmt.pct(r.value)} of ${r.n} questions`, run.note])).on('mouseleave', hideTip);
+          .on('mousemove', e => showTip(e, `${run.judge} judge · ${run.run_label}`, [`${lab}: ${fmt.pct(r.value)} of ${r.n} questions`, run.note])).on('mouseleave', hideTip);
       });
     });
   }
@@ -449,7 +449,7 @@ npm run dashboard:data</code></pre><p class="ev-cap">Retrieval evals call the em
     const lg = $('#ev-gen-legend'); lg.replaceChildren();
     if (!ok('generation_summary')) return;
     const runs = [...new Map(rowsOf('generation_summary').map(r => [r.run, r])).values()];
-    runs.forEach((run, i) => { const s = document.createElement('span'); const sw = document.createElement('i'); sw.style.background = RUN_COLORS()[i % 3]; s.append(sw, `${run.judge} judge, ${run.label.toLowerCase()}`); lg.append(s); });
+    runs.forEach((run, i) => { const s = document.createElement('span'); const sw = document.createElement('i'); sw.style.background = RUN_COLORS()[i % 3]; s.append(sw, `${run.judge} judge, ${run.run_label.toLowerCase()}`); lg.append(s); });
   }
 
   // ---------- explorer ----------

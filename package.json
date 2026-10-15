@@ -14,6 +14,7 @@
     "eval": "tsx src/mastra/scripts/eval-retrieval.ts",
     "eval:generation": "tsx src/mastra/scripts/eval-generation.ts",
     "dashboard:data": "tsx src/mastra/scripts/build-dashboard-data.ts",
+    "dashboard:standalone": "tsx src/mastra/scripts/build-dashboard-standalone.ts",
     "check-db": "tsx src/mastra/scripts/check-db.ts"
   },
   "keywords": [],

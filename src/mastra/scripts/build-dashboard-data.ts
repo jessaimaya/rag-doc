@@ -83,13 +83,13 @@ const push = (run: any, a: any, u: any) => {
 };
 // The two Sonnet-judged passes come from the run log: that run's output file was overwritten by the later Haiku run.
 const sonnetNote = 'Sonnet judge; before the judge was shown page/URL metadata';
-push({ run: 'sonnet_cutoff_off', label: 'Cutoff off', judge: 'Sonnet', cutoff: 0, note: sonnetNote },
+push({ run: 'sonnet_cutoff_off', run_label: 'Cutoff off', judge: 'Sonnet', cutoff: 0, note: sonnetNote },
   { n: 50, correct: 0.96, partial: 0.02, incorrect: 0.02, falseRefusal: 0, faithfulness: 0.9, withUnsupported: 0.64, fabricatedCitation: 0.02 },
   { n: 13, handled: 0.69, admitsMissing: 1, withUnsupported: 0.31, byTag: { out_of_scope: { handled: 0.86 }, near_miss: { handled: 0.5 } } });
-push({ run: 'sonnet_cutoff_on', label: 'Cutoff on', judge: 'Sonnet', cutoff: 0.6, note: `${sonnetNote}; 2 questions errored in the judge` },
+push({ run: 'sonnet_cutoff_on', run_label: 'Cutoff on', judge: 'Sonnet', cutoff: 0.6, note: `${sonnetNote}; 2 questions errored in the judge` },
   { n: 49, correct: 0.98, partial: 0.02, incorrect: 0, falseRefusal: 0, faithfulness: 0.89, withUnsupported: 0.67, fabricatedCitation: 0.02 },
   { n: 12, handled: 0.92, admitsMissing: 1, withUnsupported: 0.08, byTag: { out_of_scope: { handled: 1 }, near_miss: { handled: 0.8 } } });
-push({ run: 'haiku_cutoff_on', label: 'Cutoff on, cheap judge', judge: 'Haiku', cutoff: 0.6, note: 'Haiku judge; page/URL metadata visible to the judge' }, g.answerable, g.unanswerable);
+push({ run: 'haiku_cutoff_on', run_label: 'Cutoff on, cheap judge', judge: 'Haiku', cutoff: 0.6, note: 'Haiku judge; page/URL metadata visible to the judge' }, g.answerable, g.unanswerable);
 write('generation_summary', rows);
 
 // ---------- one row per question ----------
