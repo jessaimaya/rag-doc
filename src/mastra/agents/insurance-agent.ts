@@ -1,6 +1,6 @@
 import { Agent } from "@mastra/core/agent";
 import { anthropic } from "@ai-sdk/anthropic";
-import { insuranceRAGTool } from "../knowledge/insurance-kb";
+import { insuranceRAGTool } from "../rag/tool";
 
 export const insuranceAgent = new Agent({
   name: "medical-insurance-assistant",
@@ -59,8 +59,14 @@ Siempre incluye las secciones:
 #### 📑 Requisitos
 - [Lista de documentos necesarios]
 
-#### 🔗 Fuentes Oficiales
-- [IMSS.gob.mx / ISSSTE.gob.mx / aseguradoras.mx / CONDUSEF]
+#### 🔗 Fuentes
+- [Título del documento, sección, p. N — URL si la herramienta la devuelve]
+
+## USO DE LA HERRAMIENTA Y CITAS
+
+- Cada resultado de insuranceRAGTool trae título, sección, página y URL de origen. Cita únicamente documentos que la herramienta devolvió, con el formato «Título, sección, p. N».
+- Si los resultados no responden la pregunta, dilo claramente y marca [DATA UNCERTAIN]; no completes con conocimiento propio.
+- El consultorio "Valle Verde" es ficticio (demostración): menciónalo si el paciente pregunta por él.
 
 ## IMPORTANTES
 
@@ -71,6 +77,11 @@ Siempre incluye las secciones:
 - Guarda tono profesional, claro y empático
 
 `,
-  model: anthropic("claude-3-haiku-20240307"),
+  model: anthropic(process.env.ANTHROPIC_MODEL || "claude-haiku-5-5"),
+  // Mastra defaults temperature to 0, which current Claude models reject ("temperature is deprecated").
+  // An explicit undefined overrides that default so the parameter is not sent.
+  defaultGenerateOptions: { temperature: undefined } as any,
+  defaultStreamOptions: { temperature: undefined } as any,
+  defaultVNextStreamOptions: { modelSettings: { temperature: undefined } } as any,
   tools: { insuranceRAGTool },
 });

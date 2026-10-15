@@ -69,6 +69,16 @@
     "language": "es",
     "source_url": null,
     "retrieved": "2026-10-14",
-    "notes": "Fictional clinic written for this project. Source: clinica-valle-verde-faq.md."
+    "notes": "PDF export of clinica-valle-verde-faq.md; skipped so the content is not ingested twice.",
+    "skip": true
+  },
+  {
+    "file": "clinica-valle-verde-faq.md",
+    "title": "Preguntas frecuentes - Consultorio Médico Valle Verde (ficticio)",
+    "category": "Clinic FAQ",
+    "language": "es",
+    "source_url": null,
+    "retrieved": "2026-10-14",
+    "notes": "Fictional clinic written for this project. Markdown is the source of truth."
   }
 ]

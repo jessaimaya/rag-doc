@@ -2,7 +2,6 @@ import { Mastra } from '@mastra/core/mastra';
 import { PinoLogger } from '@mastra/loggers';
 import { LibSQLStore } from '@mastra/libsql';
 import { insuranceAgent } from './agents/insurance-agent';
-import { insuranceVectorStore } from './knowledge/insurance-kb';
 import { createApiMiddleware, createRateLimiter, resolveApiKey } from './security';
 
 // Throws at startup when MASTRA_API_KEY is missing outside development
@@ -14,9 +13,6 @@ const limiter = createRateLimiter({
 
 export const mastra = new Mastra({
   agents: { insuranceAgent },
-  vectors: {
-    insuranceVectorStore,
-  },
   storage: new LibSQLStore({
     // stores observability, scores, ... into memory storage, if it needs to persist, change to file:../mastra.db
     url: ":memory:",
