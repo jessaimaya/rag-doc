@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-10-15 — Chat UI
+
+- Calm clinical redesign of the frontend chat (light and dark themes, serif headings, one teal accent).
+- Assistant answers render as Markdown (`react-markdown` + `remark-gfm`) instead of raw text.
+- Starter questions match the indexed documents; fictional-clinic note; "searching the documents" state; per-cause error messages with retry; new-conversation button; growing textarea with Enter to send.
+- Fix: the chat route rejected any message over 2000 characters, but about 3 in 10 assistant answers are longer, so the follow-up question after a long answer failed. Assistant messages may now be up to 8000 characters; user messages stay at 2000.
+
 ## 2026-10-15 — Standalone dashboard and stricter grounding prompt
 
 - `npm run dashboard:standalone` builds `evals/dashboard/standalone.html`, the eval dashboard as one self-contained page (only d3 loads from a CDN). Verified in a browser: charts, filters, search and answer detail work, and there are no console errors.

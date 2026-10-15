@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { checkRateLimit, clientIp } from '@/lib/rate-limit';
 
 const MAX_MESSAGES = 30;
-const MAX_CONTENT_LENGTH = 2000;
+const MAX_USER_LENGTH = 2000;
+// Assistant answers are routinely longer than a user question (some exceed 3000 characters), and they come back as history.
+const MAX_ASSISTANT_LENGTH = 8000;
 const RATE_LIMIT_PER_MIN = Number(process.env.RATE_LIMIT_PER_MIN) || 10;
 
 function isValidMessages(messages: unknown): messages is { role: string; content: string }[] {
@@ -15,7 +17,7 @@ function isValidMessages(messages: unknown): messages is { role: string; content
         m &&
         (m.role === 'user' || m.role === 'assistant') &&
         typeof m.content === 'string' &&
-        m.content.length <= MAX_CONTENT_LENGTH,
+        m.content.length <= (m.role === 'user' ? MAX_USER_LENGTH : MAX_ASSISTANT_LENGTH),
     )
   );
 }

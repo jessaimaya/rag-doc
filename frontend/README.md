@@ -1,14 +1,15 @@
 # Medical Insurance Assistant - Frontend
 
-Beautiful chat interface for the Mexican Medical Insurance Assistant.
+Chat interface for the Mexican medical insurance assistant (Spanish UI, light and dark themes).
 
 ## Features
 
-- 💬 Clean ChatGPT-style interface
-- 🇲🇽 Spanish language UI
-- 📱 Responsive design
-- ⚡ Real-time responses from Mastra API
-- 🎨 Tailwind CSS styling
+- Answers render as real Markdown (section headings, lists, bold, tables, links that open in a new tab). Raw HTML in an answer is never rendered.
+- Starter questions that match the indexed documents (IMSS, ISSSTE, GNP, reimbursement, patient rights, the fictional clinic), plus a note that the clinic is fictional.
+- Clear states: "searching the documents" while waiting, a plain-language error with a retry button (rate limit, offline, timeout, backend down), and a new-conversation button.
+- Composer: Enter sends, Shift+Enter adds a line, the box grows with the text, 2000-character limit with a counter near the end.
+- Long answers open at their first line instead of scrolling to the bottom; respects reduced-motion; works at phone width.
+- The backend keeps no memory, so every request sends the conversation (last 30 messages). The route accepts user messages up to 2000 characters and assistant messages up to 8000, because answers are often longer than 2000.
 
 ## Getting Started
 

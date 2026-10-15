@@ -1,26 +1,189 @@
 @import "tailwindcss";
 
+/* Calm clinical palette: neutrals lean slightly green so the single teal accent feels native, not applied. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --bg: #f4f6f4;
+  --panel: #ffffff;
+  --ink: #17211f;
+  --ink-muted: #5a6763;
+  --line: #dce3df;
+  --accent: #2b6a62;
+  --accent-ink: #ffffff;
+  --accent-soft: #e3eeeb;
+  --user: #e6eeeb;
+  --danger: #a3362b;
+  --danger-soft: #f8e9e6;
+  color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --bg: #0e1413;
+    --panel: #151c1a;
+    --ink: #e5ece9;
+    --ink-muted: #9aa8a3;
+    --line: #25322e;
+    --accent: #72bcb0;
+    --accent-ink: #0b1412;
+    --accent-soft: #1a2a27;
+    --user: #1d2b28;
+    --danger: #ef9188;
+    --danger-soft: #2c1a18;
+    color-scheme: dark;
   }
 }
 
+@theme inline {
+  --color-bg: var(--bg);
+  --color-panel: var(--panel);
+  --color-ink: var(--ink);
+  --color-muted: var(--ink-muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+  --color-user: var(--user);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --font-sans: var(--font-public), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-newsreader), ui-serif, Georgia, serif;
+}
+
+html,
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Answers are Markdown written by the assistant: headings are section labels, not page titles. */
+.md {
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+.md > * + * {
+  margin-top: 0.85rem;
+}
+.md h1,
+.md h2,
+.md h3,
+.md h4 {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: 1.1rem;
+  line-height: 1.3;
+  margin-top: 1.5rem;
+  text-wrap: balance;
+}
+.md > :first-child {
+  margin-top: 0;
+}
+.md ul,
+.md ol {
+  padding-left: 1.3rem;
+}
+.md ul {
+  list-style: disc;
+}
+.md ol {
+  list-style: decimal;
+}
+.md li + li {
+  margin-top: 0.3rem;
+}
+.md li::marker {
+  color: var(--accent);
+}
+.md strong {
+  font-weight: 600;
+}
+.md a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  word-break: break-all;
+}
+.md code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9em;
+  background: var(--accent-soft);
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+}
+.md hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin-block: 1.25rem;
+}
+.md blockquote {
+  border-left: 3px solid var(--line);
+  padding-left: 0.9rem;
+  color: var(--ink-muted);
+}
+.md em {
+  color: var(--ink-muted);
+}
+.md-table {
+  overflow-x: auto;
+  max-width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.md table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.md th {
+  text-align: left;
+  font-weight: 600;
+  background: var(--accent-soft);
+}
+.md th,
+.md td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--line);
+}
+.md tr:last-child td {
+  border-bottom: 0;
+}
+
+@keyframes pulse-dot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .dot {
+    animation: pulse-dot 1.2s infinite ease-in-out;
+  }
+  .dot:nth-child(2) {
+    animation-delay: 0.15s;
+  }
+  .dot:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+  .rise {
+    animation: rise 0.25s ease-out;
+  }
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+  }
 }
