@@ -36,6 +36,7 @@ npm run search -- "¿qué necesito para una incapacidad?"   # inspect retrieval
 NODE_ENV=development npm run dev   # backend on http://localhost:4111, open API allowed in dev
 npm test               # unit tests
 npm run eval           # retrieval evals (needs the database and the Voyage key)
+npm run eval:generation # answer-quality evals through the real agent (spends Anthropic credits)
 ```
 
 Frontend:
@@ -55,6 +56,8 @@ npm run dev
 | `DATABASE_URL` | Postgres connection string (needs the `vector` extension) |
 | `VOYAGE_RPM`, `VOYAGE_TPM` | Optional client-side throttle for rate-limited Voyage keys (free tier without billing: `3` and `10000`) |
 | `ANTHROPIC_MODEL` | Optional agent model, default `claude-haiku-5-5` |
+| `RAG_MIN_RELEVANCE` | Minimum rerank score of the best result before the tool answers "no relevant documents" (default `0.6`, `0` disables) |
+| `EVAL_JUDGE_MODEL` | Judge for `npm run eval:generation` (default `claude-haiku-5-5`, cheap) |
 | `MASTRA_API_KEY` | Key clients must send in `x-api-key`. Required unless `NODE_ENV=development`; the server refuses to start without it |
 | `RATE_LIMIT_PER_MIN` | Max requests per minute per client IP (backend default 30, frontend default 10) |
 | `NEXT_PUBLIC_API_URL` | Backend URL used by the frontend |
@@ -74,7 +77,7 @@ The knowledge base is built only from public documents plus one fictional clinic
 
 - Validated config at startup (one `config.ts`; ingestion is already a single path).
 - A larger public corpus.
-- ~~Retrieval evals~~ done: hit rate and MRR for vector, BM25, hybrid and reranked search, see [evals/README.md](evals/README.md). Still to do: generation evals (faithfulness, refusals) and using the rerank score as a "no relevant documents" cutoff.
+- ~~Retrieval evals~~ done: hit rate and MRR for vector, BM25, hybrid and reranked search, see [evals/README.md](evals/README.md). Generation evals (`npm run eval:generation`: correctness, faithfulness, refusals) and a rerank-score cutoff ("no relevant documents") are in too. Still to do: a stricter grounding prompt, a larger question set from real users, and a stronger judge for headline numbers.
 - Appointment booking tools with guardrails.
 - WhatsApp channel and conversation memory.
 - Public demo with a fictional clinic.

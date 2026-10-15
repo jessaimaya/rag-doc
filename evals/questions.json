@@ -706,5 +706,47 @@
     "question": "¿Cuáles son los requisitos para tramitar la visa americana?",
     "tag": "out_of_scope",
     "relevant": []
+  },
+  {
+    "id": "nm-rodilla",
+    "question": "¿La doctora Rivas hace cirugías de rodilla?",
+    "tag": "near_miss",
+    "relevant": [],
+    "note": "On topic, but the documents do not contain the answer (verified by search)."
+  },
+  {
+    "id": "nm-dental",
+    "question": "¿El consultorio Valle Verde ofrece atención dental?",
+    "tag": "near_miss",
+    "relevant": [],
+    "note": "On topic, but the documents do not contain the answer (verified by search)."
+  },
+  {
+    "id": "nm-comision",
+    "question": "¿Cobran comisión por pagar con tarjeta de crédito en el consultorio?",
+    "tag": "near_miss",
+    "relevant": [],
+    "note": "On topic, but the documents do not contain the answer (verified by search)."
+  },
+  {
+    "id": "nm-semanas",
+    "question": "¿Cuántas semanas de cotización necesito para tener derecho a los servicios médicos del ISSSTE?",
+    "tag": "near_miss",
+    "relevant": [],
+    "note": "On topic, but the documents do not contain the answer (verified by search)."
+  },
+  {
+    "id": "nm-video",
+    "question": "¿Valle Verde ofrece consultas por videollamada?",
+    "tag": "near_miss",
+    "relevant": [],
+    "note": "On topic, but the documents do not contain the answer (verified by search)."
+  },
+  {
+    "id": "nm-sura-dia",
+    "question": "¿Cuánto paga SURA por cada día de hospitalización?",
+    "tag": "near_miss",
+    "relevant": [],
+    "note": "On topic, but the documents do not contain the answer (verified by search)."
   }
 ]

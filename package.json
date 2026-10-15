@@ -12,6 +12,7 @@
     "ingest": "tsx src/mastra/scripts/ingest.ts",
     "search": "tsx src/mastra/scripts/search.ts",
     "eval": "tsx src/mastra/scripts/eval-retrieval.ts",
+    "eval:generation": "tsx src/mastra/scripts/eval-generation.ts",
     "check-db": "tsx src/mastra/scripts/check-db.ts"
   },
   "keywords": [],

@@ -6,6 +6,7 @@ import {
   bestThreshold,
   firstRelevantRank,
   isRelevant,
+  isUnanswerable,
   median,
   summarizeRanks,
   type EvalQuestion,
@@ -60,10 +61,10 @@ async function main() {
   if (!chunks.length) throw new Error('The index is empty. Run `npm run ingest` first.');
 
   // Dataset sanity: every in-scope question needs at least one relevant chunk in the index.
-  const inScope = questions.filter(q => q.tag !== 'out_of_scope');
-  const outScope = questions.filter(q => q.tag === 'out_of_scope');
+  const inScope = questions.filter(q => !isUnanswerable(q));
+  const outScope = questions.filter(isUnanswerable);
   const broken = inScope.filter(q => !chunks.some(c => isRelevant(q, c)));
-  console.log(`📋 ${questions.length} questions (${inScope.length} in scope, ${outScope.length} out of scope), ${chunks.length} chunks indexed`);
+  console.log(`📋 ${questions.length} questions (${inScope.length} answerable, ${outScope.length} unanswerable), ${chunks.length} chunks indexed`);
   for (const q of inScope) {
     const n = chunks.filter(c => isRelevant(q, c)).length;
     if (n === 0) console.error(`   ❌ ${q.id}: no chunk matches its judgments`);
@@ -93,7 +94,7 @@ async function main() {
       run.latencies.push(performance.now() - started);
       // For rerank configs only the rerank score is comparable across questions; no candidates at all counts as 0.
       run.top1.set(q.id, config.rerank ? (hits[0]?.debug.rerank ?? 0) : (hits[0]?.score ?? 0));
-      if (q.tag !== 'out_of_scope') run.ranks.set(q.id, firstRelevantRank(q, hits.map(h => h.chunk)));
+      if (!isUnanswerable(q)) run.ranks.set(q.id, firstRelevantRank(q, hits.map(h => h.chunk)));
       process.stdout.write('.');
     }
     results[config.name] = run;
@@ -112,7 +113,7 @@ async function main() {
     }
     lines.push('');
   };
-  lines.push(`# Retrieval eval — ${new Date().toISOString().slice(0, 10)}`, '', `${inScope.length} in-scope questions, ${chunks.length} chunks. Relevant = right document + all \`mustContain\` phrases. Rerank pool ${POOL}, top ${TOP_K}.`, '');
+  lines.push(`# Retrieval eval — ${new Date().toISOString().slice(0, 10)}`, '', `${inScope.length} answerable questions (+${outScope.length} unanswerable), ${chunks.length} chunks. Relevant = right document + all \`mustContain\` phrases. Rerank pool ${POOL}, top ${TOP_K}.`, '');
   table('All in-scope questions', inScope);
   for (const tag of tags) table(`Tag: ${tag}`, inScope.filter(q => q.tag === tag));
 
@@ -123,7 +124,7 @@ async function main() {
 
   const rerankConfigs = configs.filter(c => c.rerank);
   if (rerankConfigs.length && outScope.length) {
-    lines.push('### Can the rerank score tell answerable from unanswerable questions?', '', 'Top-1 rerank score on in-scope vs out-of-scope questions. AUROC 1.0 = perfect separation, 0.5 = chance.', '', '| config | in-scope min | in-scope median | out-of-scope median | out-of-scope max | AUROC | best cutoff (accuracy) |', '|---|---|---|---|---|---|---|');
+    lines.push('### Can the rerank score tell answerable from unanswerable questions?', '', 'Top-1 rerank score on answerable vs unanswerable questions (out-of-scope and near-miss). AUROC 1.0 = perfect separation, 0.5 = chance.', '', '| config | answerable min | answerable median | unanswerable median | unanswerable max | AUROC | best cutoff (accuracy) |', '|---|---|---|---|---|---|---|');
     for (const c of rerankConfigs) {
       const r = results[c.name];
       const pos = inScope.map(q => r.top1.get(q.id) ?? 0);

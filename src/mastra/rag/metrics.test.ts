@@ -55,3 +55,47 @@ test('bestThreshold finds the cutoff that separates the two groups', () => {
   assert.equal(threshold, 0.7);
   assert.equal(accuracy, 1);
 });
+
+import { fabricatedCitations, mean } from './metrics';
+
+test('fabricatedCitations flags pages and URLs that were not retrieved', () => {
+  const retrieved = [
+    { page: 20, sourceUrl: 'https://imss.gob.mx/a.pdf' },
+    { page: null, sourceUrl: null },
+  ];
+  const ok = fabricatedCitations('Ver sección 5, p. 20 — https://imss.gob.mx/a.pdf.', retrieved);
+  assert.deepEqual(ok, { pages: [], urls: [] });
+  const bad = fabricatedCitations('Consulta p. 99 y pp. 20-21 en https://otro.example/x', retrieved);
+  assert.deepEqual(bad.pages.sort(), [21, 99]);
+  assert.deepEqual(bad.urls, ['https://otro.example/x']);
+});
+
+test('fabricatedCitations does not mistake a postal code (C.P. 00000) for a page', () => {
+  assert.deepEqual(fabricatedCitations('Calle Ejemplo 123, C.P. 00000, Ciudad de México. Ver p. 12.', [{ page: 12, sourceUrl: null }]), { pages: [], urls: [] });
+});
+
+test('mean of nothing is NaN, not 0', () => {
+  assert.ok(Number.isNaN(mean([])));
+  assert.equal(mean([1, 2, 3]), 2);
+});
+
+import { firstJsonObject, parseJudgment } from './judge';
+
+test('parseJudgment accepts fenced JSON and rejects invalid shapes', () => {
+  const ok = parseJudgment('```json\n{"claims":[{"claim":"a","supported":true}],"declined":false,"admitsMissing":false,"correctness":"correct","reason":"ok"}\n```');
+  assert.equal(ok.claims.length, 1);
+  assert.throws(() => parseJudgment('no json here'));
+  assert.throws(() => parseJudgment('{"claims":[],"declined":false,"admitsMissing":false,"correctness":"great","reason":"x"}'));
+});
+
+test('firstJsonObject ignores trailing prose, a second object and braces inside strings', () => {
+  assert.equal(firstJsonObject('x {"a":"}{"} y {"b":1}'), '{"a":"}{"}');
+  assert.deepEqual(JSON.parse(firstJsonObject('```json\n{"a":{"b":2}}\n```\nDone.')), { a: { b: 2 } });
+  assert.throws(() => firstJsonObject('{"a":1'));
+});
+
+test('parseJudgment defaults the boolean flags a judge may omit', () => {
+  const j = parseJudgment('{"claims":[],"correctness":"not_applicable","reason":"r"}');
+  assert.equal(j.declined, false);
+  assert.equal(j.admitsMissing, false);
+});

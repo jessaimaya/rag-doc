@@ -1,6 +1,7 @@
 /** Pure retrieval-evaluation helpers: relevance judgments and ranking metrics. */
 
-export type QuestionTag = 'semantic' | 'lexical' | 'exact' | 'out_of_scope';
+/** `out_of_scope`: unrelated to the corpus. `near_miss`: on topic, but the answer is not in the documents. */
+export type QuestionTag = 'semantic' | 'lexical' | 'exact' | 'out_of_scope' | 'near_miss';
 
 export interface Judgment {
   /** Document id (see `npm run check-db`). */
@@ -17,6 +18,9 @@ export interface EvalQuestion {
   relevant: Judgment[];
   note?: string;
 }
+
+/** True when the corpus has no answer (out-of-scope and near-miss questions have no relevant judgments). */
+export const isUnanswerable = (q: EvalQuestion) => q.relevant.length === 0;
 
 export interface JudgedChunk {
   docId: string;
@@ -88,4 +92,34 @@ export function bestThreshold(positives: number[], negatives: number[]): { thres
     if (accuracy > best.accuracy) best = { threshold: t, accuracy };
   }
   return best;
+}
+
+// ---------- citation checks (no LLM needed) ----------
+
+export interface RetrievedRef {
+  page: number | null;
+  sourceUrl: string | null;
+}
+
+const trimUrl = (u: string) => u.replace(/[.,;:)\]]+$/, '').replace(/\/$/, '');
+
+/** Page numbers ("p. 20", "pp. 20-21") and URLs the answer cites that do not appear in what the tool returned. */
+export function fabricatedCitations(answer: string, retrieved: RetrievedRef[]): { pages: number[]; urls: string[] } {
+  const knownPages = new Set(retrieved.map(r => r.page).filter((p): p is number => p !== null));
+  const knownUrls = new Set(retrieved.map(r => r.sourceUrl).filter((u): u is string => !!u).map(trimUrl));
+
+  const pages = new Set<number>();
+  for (const m of answer.matchAll(/(?<![\w.])p(?:p|ágs?|ág)?\.\s*(\d{1,3})(?!\d)(?:\s*[-–]\s*(\d{1,3}))?/gi)) {
+    for (const n of [m[1], m[2]]) if (n && !knownPages.has(Number(n))) pages.add(Number(n));
+  }
+  const urls = new Set<string>();
+  for (const m of answer.matchAll(/https?:\/\/[^\s)\]>"'`]+/g)) {
+    const url = trimUrl(m[0]);
+    if (!knownUrls.has(url)) urls.add(url);
+  }
+  return { pages: [...pages], urls: [...urls] };
+}
+
+export function mean(values: number[]): number {
+  return values.length ? values.reduce((a, b) => a + b, 0) / values.length : NaN;
 }

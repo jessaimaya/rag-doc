@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-10-15 — Generation evals and a relevance cutoff
+
+- `npm run eval:generation`: runs questions through the real agent and has an LLM judge score correctness, claim-level faithfulness and refusals; checks fabricated page/URL citations without an LLM. Judge defaults to Haiku to keep runs cheap.
+- 6 near-miss questions (on topic, answer verified absent) added to `evals/questions.json`; the retrieval eval treats all unanswerable questions together.
+- The tool returns "no relevant documents" when the best rerank score is below `RAG_MIN_RELEVANCE` (0.6), and the agent instructions say to admit missing information instead of improvising.
+- The tool omits absent `page` / `sourceUrl` / `section` instead of sending nulls.
+
 ## 2026-10-15 — Retrieval evals
 
 - `npm run eval`: 57 judged questions, six configurations (vector, BM25, hybrid, each with and without rerank), Hit@k, MRR, latency, and an out-of-scope score analysis. Results in `evals/results/`, method and findings in `evals/README.md`.

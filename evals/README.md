@@ -57,3 +57,67 @@ Metrics: **Hit@k** (a relevant chunk in the top k), **MRR@10** (mean of 1/rank o
 
 - The first run exposed that `ST-7` was tokenized to `st`, dropping the `7`. Hyphenated codes now also yield a joined token (`st7`).
 - Reading chunks to write questions exposed article labels that were off by one when short articles were folded into the next section. Folded articles are now labelled as a range (`ARTICULO 112 – ARTICULO 113`).
+
+# Generation evals
+
+`npm run eval:generation` sends every question through the real agent (retrieval → tool → answer) and has an LLM
+judge the answer. Flags: `--compare` (cutoff off vs on), `--cutoff 0.6`, `--only id,id`, `--out name`, `--concurrency N`.
+
+**It costs real API credits**: each question is one agent run (Haiku, with one or two tool calls) plus one judge call.
+A full single pass of 63 questions is cheap with the default Haiku judge; `--compare` doubles it, and a Sonnet judge
+(`EVAL_JUDGE_MODEL=claude-sonnet-5-5`) costs several times more. Prefer `--only` while iterating.
+
+What is measured, per answer:
+
+| metric | how |
+|---|---|
+| tool called / relevant passage retrieved | from the agent's tool results, judged with the same `mustContain` rules as the retrieval eval |
+| **correct** / partial / incorrect | judge compares the answer with the gold passage |
+| **faithfulness** | judge lists the answer's factual claims and marks each supported or not by the *retrieved* passages (text, page and URL) |
+| false refusal | the agent declined although the corpus had the answer |
+| fabricated citation | a page number or URL in the answer that the tool never returned (regex, no LLM) |
+| **handled correctly** (unanswerable) | the answer says the information is missing **and** invents nothing |
+
+Unanswerable questions are 7 out of scope plus 6 near misses: on topic, but I verified by search that the documents do
+not contain the answer (dental care at the clinic, SURA's daily hospitalization amount, ...).
+
+## Relevance cutoff
+
+The retrieval eval showed the best rerank score separates answerable from unanswerable questions, so the tool now
+returns "no relevant documents" when the best score is below `RAG_MIN_RELEVANCE` (default 0.6, `0` disables) and the
+agent is told to say so instead of improvising.
+
+Result of an A/B run, cutoff 0 vs 0.6 (Sonnet judge, 63 questions, one sample each; run before the judge was fixed to
+see page/URL metadata, and the output file was later overwritten, so these numbers are from the run log):
+
+| | cutoff 0 | cutoff 0.6 |
+|---|---|---|
+| answerable: answer correct | 96% | 98% |
+| answerable: false refusal | 0% | 0% |
+| unanswerable: handled correctly | 69% | 92% |
+| unanswerable: near miss handled | 50% | 80% |
+| unanswerable: answers with an unsupported claim | 31% | 8% |
+
+The cutoff removed most invented answers on unanswerable questions at no measurable cost on answerable ones.
+
+## Latest run (`results/generation.md`): Haiku judge, cutoff 0.6, one pass
+
+| | |
+|---|---|
+| answerable: correct / partial / incorrect | 96% / 4% / 0% |
+| answerable: false refusal | 0% |
+| answerable: faithfulness (claims supported) | 94%, but 44% of answers contain at least one unsupported claim |
+| unanswerable: admits the information is missing | 100% |
+| unanswerable: handled correctly (admits **and** invents nothing) | 38% |
+
+How to read this:
+
+- The agent is **correct** on almost every answerable question, never refuses wrongly, and **admits missing information in all 13 unanswerable cases**.
+- **The 38% is a judge artifact, not agent behaviour.** Reading the verdicts, the Haiku judge marks the assistant's own boilerplate ("solo puedo ayudar con trámites de seguros", "realicé dos búsquedas") and generic pointers ("la SRE se encarga de los pasaportes") as unsupported claims. The Sonnet judge in the A/B run did not. Use the Sonnet judge before quoting a "handled correctly" number.
+- **A real tendency to pad**: many answerable answers add small details the passages do not state ("debe estar firmado", "los requisitos varían según la aseguradora"). Mostly harmless, occasionally wrong. A stricter "only state what the results say" instruction is the obvious next experiment.
+- `faq-imss` stays *partial*: asked whether the clinic can issue an IMSS incapacidad, the agent answers from the IMSS procedure instead of saying plainly that the clinic is private and does not serve IMSS patients (the FAQ passage was retrieved). A genuine quality gap.
+
+## Limits
+
+One sample per question, one judge, and judges disagree: Haiku vs Sonnet changed one headline number from 92% to 38%.
+Treat the numbers as a smoke test that catches regressions and obvious failures, not as a benchmark.
