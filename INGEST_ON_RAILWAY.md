@@ -17,7 +17,7 @@ Upload your PDF to:
 3. Go to **Settings** → **One-off Commands**
 4. Enter this command:
    ```bash
-   npm run ingest-url https://your-pdf-url.pdf
+   npm run ingest -- --url https://your-pdf-url.pdf
    ```
 5. Click "Run"
 
@@ -46,7 +46,7 @@ Inside the Railway shell:
 npm run ingest
 
 # Option B: Ingest from URL
-npm run ingest-url https://your-pdf-url.pdf
+npm run ingest -- --url https://your-pdf-url.pdf
 ```
 
 ## Method 3: Create Ingestion Service
@@ -110,7 +110,7 @@ railway shell
    ```
 4. Run on Railway:
    ```bash
-   npm run ingest-url "https://drive.google.com/uc?export=download&id=FILE_ID"
+   npm run ingest -- --url "https://drive.google.com/uc?export=download&id=FILE_ID"
    ```
 
 ## Example: Ingest from GitHub
@@ -122,7 +122,7 @@ railway shell
    ```
 3. Run on Railway:
    ```bash
-   npm run ingest-url "https://raw.githubusercontent.com/username/repo/main/documents/file.pdf"
+   npm run ingest -- --url "https://raw.githubusercontent.com/username/repo/main/documents/file.pdf"
    ```
 
 ## Troubleshooting

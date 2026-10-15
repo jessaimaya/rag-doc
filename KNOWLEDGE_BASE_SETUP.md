@@ -1,198 +1,81 @@
-# Insurance Agent - Knowledge Base Setup
+# Knowledge base
 
-This guide explains how to add insurance documents to your agent's knowledge base using RAG (Retrieval-Augmented Generation).
+How documents get into the knowledge base and how the agent finds them.
 
-## Overview
+## 1. Describe the documents: `documents/manifest.json`
 
-Your insurance agent now uses a PostgreSQL vector database to store and retrieve information from your insurance documents. When users ask questions, the agent automatically searches the knowledge base for relevant information.
+The manifest is the source of truth. Each entry points at a local `file` (relative to `documents/`) or a remote `url`:
 
-## Quick Start
-
-### 1. Prepare Your Documents
-
-Create a `documents` folder in your project root:
-
-```bash
-mkdir documents
-```
-
-Add your PDF files to this folder. Organize them by category if you want:
-
-```
-documents/
-├── IMSS_formulario_afiliacion.pdf
-├── ISSSTE_guia_tramites.pdf
-├── hospital_procedimientos.pdf
-└── seguro_privado_coberturas.pdf
-```
-
-### 2. Ingest All Documents
-
-Run the ingestion script to process all PDFs in the `documents` folder:
-
-```bash
-npm run ingest
-```
-
-This will:
-- Extract text from each PDF
-- Split text into chunks
-- Generate embeddings
-- Store everything in PostgreSQL
-
-The script automatically categorizes documents based on filename keywords (IMSS, ISSSTE, hospital, etc.).
-
-### 3. Add a Single Document
-
-To add one document at a time:
-
-**From a local file:**
-```bash
-npm run add-doc file ./path/to/document.pdf IMSS
-```
-
-**From a URL:**
-```bash
-npm run add-doc url https://example.com/document.pdf ISSSTE
-```
-
-Available categories:
-- `IMSS`
-- `ISSSTE`
-- `Private`
-- `Hospital Procedures`
-- `General`
-
-## How It Works
-
-### Document Processing Flow
-
-1. **PDF → Text Extraction**: Uses `pdf2json` to extract text from PDFs
-2. **Text → Chunks**: Splits text into 1000-character chunks with 200-character overlap
-3. **Chunks → Embeddings**: Uses OpenAI's `text-embedding-3-small` model
-4. **Embeddings → Database**: Stores in PostgreSQL with pgvector extension
-
-### When the Agent is Asked a Question
-
-1. User asks: "¿Cómo registro a mi hijo en el IMSS?"
-2. Agent converts question to embedding
-3. Searches knowledge base for similar content
-4. Retrieves top relevant chunks
-5. Uses chunks as context to answer in Spanish
-
-## Database Setup
-
-Your knowledge base uses PostgreSQL with the pgvector extension. The connection is configured in `.env`:
-
-```env
-DB_CONNECTION=postgresql://postgres:password@host:5432/postgres
-```
-
-The embeddings are stored in the `insurance_embeddings` table, which is automatically created when you first ingest documents.
-
-## Knowledge Base Configuration
-
-The knowledge base is configured in `src/mastra/knowledge/insurance-kb.ts`:
-
-- **Vector Store**: PostgreSQL with pgvector
-- **Embedding Model**: OpenAI text-embedding-3-small
-- **Chunk Size**: 1000 characters
-- **Chunk Overlap**: 200 characters
-
-## Advanced Usage
-
-### Manual Document Addition
-
-You can programmatically add documents in your code:
-
-```typescript
-import { insuranceKnowledgeBase } from './src/mastra/knowledge/insurance-kb';
-
-await insuranceKnowledgeBase.addDocuments([
+```json
+[
   {
-    content: "Your document text here...",
-    metadata: {
-      fileName: "custom-doc.pdf",
-      fileType: "PDF",
-      category: "IMSS",
-      uploadDate: new Date().toISOString(),
-    },
+    "file": "imss-incapacidad-9220-003-329.pdf",
+    "title": "IMSS procedimiento 9220-003-329",
+    "category": "IMSS",
+    "language": "es",
+    "source_url": "https://www.imss.gob.mx/.../9220-003-329.pdf",
+    "retrieved": "2026-10-14"
   },
-]);
+  { "url": "https://example.com/guia.docx", "title": "Guía de ejemplo", "category": "Private" },
+  { "file": "old-copy.pdf", "skip": true, "notes": "duplicate of the .md" }
+]
 ```
 
-### Querying the Knowledge Base
+- **Formats:** PDF, DOCX, HTML, Markdown and TXT. The format comes from the extension or the response content-type; set `"type"` to override it. Scanned PDFs (no text layer) are not supported yet.
+- `title`, `category`, `source_url` are shown in citations. Any extra keys you add are stored as metadata.
+- Supported files in `documents/` that are not in the manifest are still ingested (title from the file name, category `General`) and a warning is printed.
+- `"skip": true` keeps an entry documented but out of the index.
 
-The agent automatically queries the knowledge base, but you can also query it directly:
-
-```typescript
-const results = await insuranceKnowledgeBase.query({
-  query: "¿Cómo registro a mi hijo en el IMSS?",
-  topK: 5, // Number of results to return
-});
-```
-
-## Best Practices
-
-1. **Organize by Category**: Use clear filenames with keywords (IMSS, ISSSTE, hospital)
-2. **Regular Updates**: Re-ingest documents when they're updated
-3. **Clean PDFs**: Ensure PDFs have selectable text (not just images)
-4. **Metadata**: Add custom metadata to help with filtering and organization
-
-## Troubleshooting
-
-### No text extracted from PDF
-
-- Make sure the PDF contains selectable text (not scanned images)
-- Try opening the PDF and copying text to verify it's extractable
-
-### Database connection errors
-
-- Verify your `DB_CONNECTION` string in `.env`
-- Ensure PostgreSQL has the pgvector extension installed
-- Check database permissions
-
-### Embeddings not being generated
-
-- Verify your `OPENAI_API_KEY` in `.env`
-- Check your OpenAI account has credits
-- Look for rate limiting errors in console output
-
-## Example Workflow
+## 2. Ingest
 
 ```bash
-# 1. Add your documents
-mkdir documents
-cp ~/Desktop/insurance_forms/*.pdf documents/
-
-# 2. Ingest all documents
-npm run ingest
-
-# 3. Start the agent
-npm run dev
-
-# 4. Test in the playground at http://localhost:4111
-# Ask: "¿Qué documentos necesito para registrar a mi hijo en el IMSS?"
+npm run check-db                       # connects, enables pgvector, creates tables
+npm run ingest                         # everything that changed
+npm run ingest -- --only imss          # documents whose id or title contains "imss"
+npm run ingest -- --url https://.../x.pdf --category IMSS   # one remote file, no manifest edit
+npm run ingest -- --dry-run            # parse + chunk only: no API calls, no database writes
+npm run ingest -- --force              # re-ingest even if nothing changed
+npm run ingest -- --no-semantic        # structure-only chunking (skips the sentence-embedding pass)
+npm run ingest -- --prune              # delete documents that are no longer in the manifest
 ```
 
-## File Structure
+Re-running is safe: each document is replaced in one transaction, and unchanged files (same bytes, same chunking settings and embedding model) are skipped.
+
+### Chunking
+
+1. **Structure:** text is split into sections by headings (`#`, `CAPÍTULO`, `Artículo N`, `6.1 Título`). Tables stay whole, list items and legal *fracciones* stay separate. Running headers/footers are removed from PDFs. Each chunk keeps its section path and page.
+2. **Semantic:** every sentence is embedded with Voyage. The cosine distance between the windows of sentences on each side of a boundary marks topic shifts; boundaries above the 85th percentile become breakpoints.
+3. **Packing:** chunks are 400–1400 characters, break at breakpoints, never cross a heading. Each chunk is embedded together with its breadcrumb (`Document › Section › Subsection`).
+
+## 3. Retrieval (`src/mastra/rag/retriever.ts`)
+
+1. **Vector search** (pgvector, cosine) and **BM25** (in-memory, Spanish tokenization with accent folding and light stemming) each return 25 candidates.
+2. **Reciprocal Rank Fusion** merges the two ranked lists (`score = Σ 1/(60 + rank)`), which works without normalizing cosine and BM25 scores.
+3. The top 30 fused candidates go to Voyage **rerank** (`rerank-2.5`), and the best 5 are returned. If the rerank call fails, the fused order is used.
+
+Inspect any query, including where each hit ranked in each list:
+
+```bash
+npm run search -- "¿qué necesito para una incapacidad temporal?" [--no-rerank] [--category IMSS] [--top 5]
+```
+
+## Configuration
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `VOYAGE_API_KEY`, `DATABASE_URL` | required | |
+| `VOYAGE_EMBED_MODEL` | `voyage-3` | embedding model (must output 1024 dimensions) |
+| `VOYAGE_RERANK_MODEL` | `rerank-2.5` | reranker |
+| `VOYAGE_RPM`, `VOYAGE_TPM` | unset | client-side throttle for rate-limited keys. Voyage's free tier without a payment method is 3 RPM / 10K TPM: set `VOYAGE_RPM=3 VOYAGE_TPM=10000` |
+| `ANTHROPIC_MODEL` | `claude-haiku-5-5` | the agent's model |
+
+If you change the embedding model, re-ingest with `--force`.
+
+## Layout
 
 ```
-src/mastra/
-├── knowledge/
-│   └── insurance-kb.ts          # Knowledge base configuration
-├── scripts/
-│   ├── ingest-documents.ts      # Batch ingestion script
-│   └── add-single-document.ts   # Single document script
-├── agents/
-│   └── insureance-agent.ts      # Agent with KB attached
-└── lib/
-    └── util.ts                  # PDF extraction utilities
+documents/manifest.json        what to ingest
+src/mastra/rag/                loaders, manifest, chunker, bm25, fusion, voyage client, store, retriever, tool
+src/mastra/scripts/            ingest.ts, search.ts, check-db.ts
+src/mastra/agents/             the agent (uses the rag tool and cites its results)
 ```
-
-## Next Steps
-
-- Add your insurance documents to the `documents` folder
-- Run `npm run ingest` to process them
-- Start testing with `npm run dev`
-- Ask questions in Spanish about insurance procedures!

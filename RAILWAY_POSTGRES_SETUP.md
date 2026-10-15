@@ -99,7 +99,7 @@ Now you can ingest documents without IPv6 issues:
 **Option A: From URL**
 ```bash
 # In Railway One-off Command:
-npm run ingest-url https://your-pdf-url.pdf
+npm run ingest -- --url https://your-pdf-url.pdf
 ```
 
 **Option B: From documents folder**
@@ -160,12 +160,12 @@ Railway PostgreSQL pricing:
 
 - [ ] PostgreSQL database added to Railway project
 - [ ] pgvector extension enabled (`CREATE EXTENSION vector;`)
-- [ ] Environment variables configured (DATABASE_URL or DB_CONNECTION)
+- [ ] Environment variables configured (DATABASE_URL or DATABASE_URL)
 - [ ] MASTRA_TELEMETRY_DISABLED=1 added
 - [ ] Code updated and pushed to GitHub
 - [ ] Railway redeployed successfully
 - [ ] Database tables created (npm run check-db)
-- [ ] Documents ingested (npm run ingest or ingest-url)
+- [ ] Documents ingested (`npm run ingest`, or `npm run ingest -- --url <url>`)
 - [ ] Agent API tested and working
 
 ## Next Steps

@@ -62,7 +62,7 @@ In Railway dashboard, go to your project > Variables tab and add:
 ```env
 ANTHROPIC_API_KEY=sk-ant-api03-...
 VOYAGE_API_KEY=pa-...
-DB_CONNECTION=postgresql://USER:PASSWORD@HOST:5432/DBNAME
+DATABASE_URL=postgresql://USER:PASSWORD@HOST:5432/DBNAME
 DB_PASSWORD=your_db_password
 ```
 
@@ -162,7 +162,7 @@ Railway provides:
 ### Connection to Postgres fails
 - ✅ Railway has IPv6, so this should work
 - Check environment variables are set correctly
-- Verify DB_CONNECTION string is correct
+- Verify DATABASE_URL string is correct
 
 ### Out of memory
 - Increase Railway instance size (costs more)
