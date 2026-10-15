@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-15 — Standalone dashboard and stricter grounding prompt
+
+- `npm run dashboard:standalone` builds `evals/dashboard/standalone.html`, the eval dashboard as one self-contained page (only d3 loads from a CDN). Verified in a browser: charts, filters, search and answer detail work, and there are no console errors.
+- Fixed run labels in the answer-quality legend.
+- Agent instructions gain a "fidelidad a las fuentes" section. On the 30 questions that had unsupported claims, unsupported claims fell from 47 to 9 and answers got about a fifth shorter; details and caveats in `evals/README.md`.
+
 ## 2026-10-15 — Eval dashboard
 
 - `npm run dashboard:data` builds five datasets (corpus, retrieval metrics, fusion sweep, answer-quality metrics, per-question results) from the saved eval results into `evals/dashboard-data/`; `evals/dashboard/index.html` is the dashboard page that reads them.

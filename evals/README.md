@@ -131,3 +131,36 @@ How to read this:
 
 One sample per question, one judge, and judges disagree: Haiku vs Sonnet changed one headline number from 92% to 38%.
 Treat the numbers as a smoke test that catches regressions and obvious failures, not as a benchmark.
+
+## Experiment: stricter grounding prompt (`results/generation-v2-grounding.*`)
+
+Hypothesis: many unsupported claims are padding ("los requisitos pueden variar según la aseguradora"), so telling the
+agent to state only what the retrieved passages say should remove them without hurting correctness.
+
+Change: a "fidelidad a las fuentes" section in the agent instructions (only what the results say, no uncited
+documents or pages, missing information marked as such, an entity's own policy before general procedures, short
+answers). Method: re-run the 30 questions that had an unsupported claim or a non-correct verdict in the baseline run
+(Haiku judge, cutoff 0.6, one sample each).
+
+| same 30 questions | baseline | stricter prompt |
+|---|---|---|
+| unsupported claims (all answers) | 47 | 9 |
+| answers with at least one | 30 | 8 |
+| claims supported, answerable questions | 87% | 98% |
+| mean answer length (characters) | 2158 | 1722 |
+| answers judged correct, answerable (22) | 20 | 21 |
+| unanswerable questions that admit the gap (8) | 8 | 8 |
+
+Per question: `faq-imss` and `imss-carta-patronal` went from partial to correct, `sura-incapacidad` from correct to
+partial. Four of the five claims still flagged on unanswerable questions are the assistant describing its own scope.
+
+Read it with these limits:
+
+- **Selection bias.** The subset was chosen *because* the baseline had problems, so the baseline looks as bad as it can
+  and some improvement is regression to the mean. The size of the drop (47 to 9) is too large to be only that, but the
+  honest comparison is a full re-run of all 63 questions under both prompts.
+- **Nothing was checked on the other 33 questions**, so a new problem there (over-refusing, for example) would not show.
+- One sample per question, one cheap judge, and the unsupported-claim metric depends on the judge.
+- Two instructions changed at once (grounding, and entity policy first). The `faq-imss` fix is probably the second.
+
+The stricter prompt is now the agent's default (`src/mastra/agents/insurance-agent.ts`); the previous prompt is in git history.

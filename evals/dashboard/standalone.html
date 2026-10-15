@@ -267,8 +267,8 @@ a { color: inherit; }
       <li><b>The chat model no longer existed</b><span>Running the assistant end to end returned a 404 for the old model, then a rejection of the temperature setting on the new one. Both are fixed.</span></li>
       <li><b>The judge could not see page numbers</b><span>It marked correct citations as unsupported. It now sees the same page and link metadata the assistant was given.</span></li>
       <li><b>The citation checker misread a postal code</b><span>"C.P. 00000" in the fictional clinic's address counted as a fabricated page. The pattern is stricter now.</span></li>
-      <li><b>The assistant pads answers</b><span>Many answers add a plausible detail the passages do not state. Mostly harmless, sometimes wrong. A stricter grounding instruction is the next experiment.</span></li>
-      <li><b>One real quality gap remains</b><span>Asked whether the clinic can issue an IMSS disability note, the assistant answers from the IMSS procedure instead of saying plainly that the clinic is private and does not serve IMSS patients.</span></li>
+      <li><b>The assistant padded answers, then was told to stop</b><span>Many answers added plausible details the passages do not state. A stricter "only what the results say" instruction removed most of them when the affected questions were re-run, and answers got shorter. One answer got worse and two got better. It was tested on a hand-picked subset, so a full re-run is still owed.</span></li>
+      <li><b>A question answered from the wrong document</b><span>Asked whether the clinic can issue an IMSS disability note, the assistant answered from the IMSS procedure instead of saying plainly that the clinic is private. The same grounding instruction fixed it in the re-run, but that is a single question.</span></li>
     </ul>
   </section>
 
