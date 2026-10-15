@@ -289,7 +289,7 @@
  },
  {
   "run": "haiku_cutoff_on",
-  "run_label": "Cutoff on, cheap judge",
+  "run_label": "Original prompt",
   "judge": "Haiku",
   "cutoff": 0.6,
   "note": "Haiku judge; page/URL metadata visible to the judge",
@@ -301,7 +301,7 @@
  },
  {
   "run": "haiku_cutoff_on",
-  "run_label": "Cutoff on, cheap judge",
+  "run_label": "Original prompt",
   "judge": "Haiku",
   "cutoff": 0.6,
   "note": "Haiku judge; page/URL metadata visible to the judge",
@@ -313,7 +313,7 @@
  },
  {
   "run": "haiku_cutoff_on",
-  "run_label": "Cutoff on, cheap judge",
+  "run_label": "Original prompt",
   "judge": "Haiku",
   "cutoff": 0.6,
   "note": "Haiku judge; page/URL metadata visible to the judge",
@@ -325,7 +325,7 @@
  },
  {
   "run": "haiku_cutoff_on",
-  "run_label": "Cutoff on, cheap judge",
+  "run_label": "Original prompt",
   "judge": "Haiku",
   "cutoff": 0.6,
   "note": "Haiku judge; page/URL metadata visible to the judge",
@@ -337,7 +337,7 @@
  },
  {
   "run": "haiku_cutoff_on",
-  "run_label": "Cutoff on, cheap judge",
+  "run_label": "Original prompt",
   "judge": "Haiku",
   "cutoff": 0.6,
   "note": "Haiku judge; page/URL metadata visible to the judge",
@@ -349,7 +349,7 @@
  },
  {
   "run": "haiku_cutoff_on",
-  "run_label": "Cutoff on, cheap judge",
+  "run_label": "Original prompt",
   "judge": "Haiku",
   "cutoff": 0.6,
   "note": "Haiku judge; page/URL metadata visible to the judge",
@@ -361,7 +361,7 @@
  },
  {
   "run": "haiku_cutoff_on",
-  "run_label": "Cutoff on, cheap judge",
+  "run_label": "Original prompt",
   "judge": "Haiku",
   "cutoff": 0.6,
   "note": "Haiku judge; page/URL metadata visible to the judge",
@@ -373,7 +373,7 @@
  },
  {
   "run": "haiku_cutoff_on",
-  "run_label": "Cutoff on, cheap judge",
+  "run_label": "Original prompt",
   "judge": "Haiku",
   "cutoff": 0.6,
   "note": "Haiku judge; page/URL metadata visible to the judge",
@@ -385,7 +385,7 @@
  },
  {
   "run": "haiku_cutoff_on",
-  "run_label": "Cutoff on, cheap judge",
+  "run_label": "Original prompt",
   "judge": "Haiku",
   "cutoff": 0.6,
   "note": "Haiku judge; page/URL metadata visible to the judge",
@@ -397,7 +397,7 @@
  },
  {
   "run": "haiku_cutoff_on",
-  "run_label": "Cutoff on, cheap judge",
+  "run_label": "Original prompt",
   "judge": "Haiku",
   "cutoff": 0.6,
   "note": "Haiku judge; page/URL metadata visible to the judge",
@@ -409,7 +409,7 @@
  },
  {
   "run": "haiku_cutoff_on",
-  "run_label": "Cutoff on, cheap judge",
+  "run_label": "Original prompt",
   "judge": "Haiku",
   "cutoff": 0.6,
   "note": "Haiku judge; page/URL metadata visible to the judge",
@@ -421,7 +421,7 @@
  },
  {
   "run": "haiku_cutoff_on",
-  "run_label": "Cutoff on, cheap judge",
+  "run_label": "Original prompt",
   "judge": "Haiku",
   "cutoff": 0.6,
   "note": "Haiku judge; page/URL metadata visible to the judge",
@@ -429,6 +429,150 @@
   "metric": "with_unsupported",
   "label": "Answers with an unsupported claim",
   "value": 0.6153846153846154,
+  "n": 13
+ },
+ {
+  "run": "haiku_grounded",
+  "run_label": "Stricter prompt",
+  "judge": "Haiku",
+  "cutoff": 0.6,
+  "note": "Haiku judge; stricter grounding instructions; all questions re-run",
+  "group": "answerable",
+  "metric": "correct",
+  "label": "Answer correct",
+  "value": 0.98,
+  "n": 50
+ },
+ {
+  "run": "haiku_grounded",
+  "run_label": "Stricter prompt",
+  "judge": "Haiku",
+  "cutoff": 0.6,
+  "note": "Haiku judge; stricter grounding instructions; all questions re-run",
+  "group": "answerable",
+  "metric": "partial",
+  "label": "Answer partial",
+  "value": 0.02,
+  "n": 50
+ },
+ {
+  "run": "haiku_grounded",
+  "run_label": "Stricter prompt",
+  "judge": "Haiku",
+  "cutoff": 0.6,
+  "note": "Haiku judge; stricter grounding instructions; all questions re-run",
+  "group": "answerable",
+  "metric": "incorrect",
+  "label": "Answer incorrect",
+  "value": 0,
+  "n": 50
+ },
+ {
+  "run": "haiku_grounded",
+  "run_label": "Stricter prompt",
+  "judge": "Haiku",
+  "cutoff": 0.6,
+  "note": "Haiku judge; stricter grounding instructions; all questions re-run",
+  "group": "answerable",
+  "metric": "false_refusal",
+  "label": "Wrongly refused",
+  "value": 0,
+  "n": 50
+ },
+ {
+  "run": "haiku_grounded",
+  "run_label": "Stricter prompt",
+  "judge": "Haiku",
+  "cutoff": 0.6,
+  "note": "Haiku judge; stricter grounding instructions; all questions re-run",
+  "group": "answerable",
+  "metric": "faithfulness",
+  "label": "Faithfulness (claims supported)",
+  "value": 0.9881796690307328,
+  "n": 50
+ },
+ {
+  "run": "haiku_grounded",
+  "run_label": "Stricter prompt",
+  "judge": "Haiku",
+  "cutoff": 0.6,
+  "note": "Haiku judge; stricter grounding instructions; all questions re-run",
+  "group": "answerable",
+  "metric": "with_unsupported",
+  "label": "Answers with an unsupported claim",
+  "value": 0.1,
+  "n": 50
+ },
+ {
+  "run": "haiku_grounded",
+  "run_label": "Stricter prompt",
+  "judge": "Haiku",
+  "cutoff": 0.6,
+  "note": "Haiku judge; stricter grounding instructions; all questions re-run",
+  "group": "answerable",
+  "metric": "fabricated_citation",
+  "label": "Cited a page or URL never retrieved",
+  "value": 0,
+  "n": 50
+ },
+ {
+  "run": "haiku_grounded",
+  "run_label": "Stricter prompt",
+  "judge": "Haiku",
+  "cutoff": 0.6,
+  "note": "Haiku judge; stricter grounding instructions; all questions re-run",
+  "group": "unanswerable",
+  "metric": "handled",
+  "label": "Handled correctly",
+  "value": 0.5384615384615384,
+  "n": 13
+ },
+ {
+  "run": "haiku_grounded",
+  "run_label": "Stricter prompt",
+  "judge": "Haiku",
+  "cutoff": 0.6,
+  "note": "Haiku judge; stricter grounding instructions; all questions re-run",
+  "group": "unanswerable",
+  "metric": "handled_out_of_scope",
+  "label": "Handled: out of scope",
+  "value": 0.42857142857142855,
+  "n": 13
+ },
+ {
+  "run": "haiku_grounded",
+  "run_label": "Stricter prompt",
+  "judge": "Haiku",
+  "cutoff": 0.6,
+  "note": "Haiku judge; stricter grounding instructions; all questions re-run",
+  "group": "unanswerable",
+  "metric": "handled_near_miss",
+  "label": "Handled: near miss",
+  "value": 0.6666666666666666,
+  "n": 13
+ },
+ {
+  "run": "haiku_grounded",
+  "run_label": "Stricter prompt",
+  "judge": "Haiku",
+  "cutoff": 0.6,
+  "note": "Haiku judge; stricter grounding instructions; all questions re-run",
+  "group": "unanswerable",
+  "metric": "admits_missing",
+  "label": "Admits the information is missing",
+  "value": 1,
+  "n": 13
+ },
+ {
+  "run": "haiku_grounded",
+  "run_label": "Stricter prompt",
+  "judge": "Haiku",
+  "cutoff": 0.6,
+  "note": "Haiku judge; stricter grounding instructions; all questions re-run",
+  "group": "unanswerable",
+  "metric": "with_unsupported",
+  "label": "Answers with an unsupported claim",
+  "value": 0.46153846153846156,
   "n": 13
  }
 ]

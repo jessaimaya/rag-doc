@@ -4,7 +4,8 @@
 
 - `npm run dashboard:standalone` builds `evals/dashboard/standalone.html`, the eval dashboard as one self-contained page (only d3 loads from a CDN). Verified in a browser: charts, filters, search and answer detail work, and there are no console errors.
 - Fixed run labels in the answer-quality legend.
-- Agent instructions gain a "fidelidad a las fuentes" section. On the 30 questions that had unsupported claims, unsupported claims fell from 47 to 9 and answers got about a fifth shorter; details and caveats in `evals/README.md`.
+- Agent instructions gain a "fidelidad a las fuentes" section. Re-running all 63 questions: answers with an unsupported claim fell from 44% to 10% and claims supported rose from 93.6% to 98.8%, with correctness 96% to 98%, no false refusals, and answers about a quarter shorter. Details and caveats in `evals/README.md`.
+- The eval dashboard gains the stricter-prompt run; the answer-summary logic moved to `src/mastra/rag/gen-summary.ts`, shared by the eval and the dashboard builder.
 
 ## 2026-10-15 — Eval dashboard
 

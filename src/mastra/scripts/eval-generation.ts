@@ -4,6 +4,7 @@ import * as path from 'path';
 import { insuranceAgent } from '../agents/insurance-agent';
 import { judgeAnswer, type Judgment } from '../rag/judge';
 import { fabricatedCitations, isRelevant, isUnanswerable, mean, type EvalQuestion, type RetrievedRef } from '../rag/metrics';
+import { summarize, type GenerationSummary } from '../rag/gen-summary';
 import { closePool, loadAllChunks, type StoredChunk } from '../rag/store';
 
 /**
@@ -109,54 +110,13 @@ async function runPass(questions: EvalQuestion[], chunks: StoredChunk[], cutoff:
   });
 }
 
-/** The right behaviour for an unanswerable question: say the information is missing. */
-const admits = (r: Row) => r.judgment!.declined || r.judgment!.admitsMissing;
-/** ...and do not invent anything while doing so. */
-const handled = (r: Row) => admits(r) && r.judgment!.claims.every(c => c.supported);
-
-function summarize(rows: Row[]) {
-  const ok = rows.filter(r => r.judgment && !r.error);
-  const answerable = ok.filter(r => !r.unanswerable);
-  const unanswerable = ok.filter(r => r.unanswerable);
-  const claims = (rs: Row[]) => rs.flatMap(r => r.judgment!.claims);
-  const unsupportedShare = (rs: Row[]) => rs.filter(r => r.judgment!.claims.some(c => !c.supported)).length / (rs.length || NaN);
-  const supported = (rs: Row[]) => claims(rs).filter(c => c.supported).length / (claims(rs).length || NaN);
-  return {
-    errors: rows.filter(r => r.error).length,
-    answerable: {
-      n: answerable.length,
-      toolCalled: answerable.filter(r => r.toolCalls > 0).length / (answerable.length || NaN),
-      retrievedRelevant: answerable.filter(r => r.retrievedRelevant).length / (answerable.length || NaN),
-      correct: answerable.filter(r => r.judgment!.correctness === 'correct').length / (answerable.length || NaN),
-      partial: answerable.filter(r => r.judgment!.correctness === 'partial').length / (answerable.length || NaN),
-      incorrect: answerable.filter(r => r.judgment!.correctness === 'incorrect').length / (answerable.length || NaN),
-      falseRefusal: answerable.filter(r => r.judgment!.declined).length / (answerable.length || NaN),
-      faithfulness: supported(answerable),
-      withUnsupported: unsupportedShare(answerable),
-      fabricatedCitation: answerable.filter(r => r.fabricated.pages.length || r.fabricated.urls.length).length / (answerable.length || NaN),
-    },
-    unanswerable: {
-      n: unanswerable.length,
-      admitsMissing: unanswerable.filter(admits).length / (unanswerable.length || NaN),
-      withUnsupported: unsupportedShare(unanswerable),
-      handled: unanswerable.filter(handled).length / (unanswerable.length || NaN),
-      byTag: Object.fromEntries(
-        ['out_of_scope', 'near_miss'].map(tag => {
-          const rs = unanswerable.filter(r => r.tag === tag);
-          return [tag, { n: rs.length, handled: rs.filter(handled).length / (rs.length || NaN) }];
-        }),
-      ),
-    },
-  };
-}
-
 async function main() {
   const all: EvalQuestion[] = JSON.parse(fs.readFileSync(path.resolve('evals/questions.json'), 'utf8'));
   const questions = only ? all.filter(q => only.includes(q.id)) : all;
   const chunks = await loadAllChunks();
   console.log(`🧪 ${questions.length} questions × ${cutoffs.length} pass(es), judge ${process.env.EVAL_JUDGE_MODEL || 'claude-haiku-5-5'}`);
 
-  const passes: { cutoff: number; rows: Row[]; summary: ReturnType<typeof summarize> }[] = [];
+  const passes: { cutoff: number; rows: Row[]; summary: GenerationSummary }[] = [];
   for (const cutoff of cutoffs) {
     const rows = await runPass(questions, chunks, cutoff);
     console.log();
@@ -166,7 +126,7 @@ async function main() {
   const L: string[] = [`# Generation eval — ${new Date().toISOString().slice(0, 10)}`, ''];
   L.push(`${questions.length} questions through the real agent (retrieval → tool → answer), judged by ${process.env.EVAL_JUDGE_MODEL || 'claude-haiku-5-5'}. Cutoff = minimum rerank score of the best result; below it the tool returns "no relevant documents".`, '');
   const cols = passes.map(p => `cutoff ${p.cutoff}`);
-  const row = (label: string, f: (s: ReturnType<typeof summarize>) => string) => `| ${label} | ${passes.map(p => f(p.summary)).join(' | ')} |`;
+  const row = (label: string, f: (s: GenerationSummary) => string) => `| ${label} | ${passes.map(p => f(p.summary)).join(' | ')} |`;
   L.push(`### Answerable questions (n=${passes[0].summary.answerable.n})`, '', `| metric | ${cols.join(' | ')} |`, `|---|${cols.map(() => '---').join('|')}|`);
   L.push(
     row('agent called the tool', s => pct(s.answerable.toolCalled)),

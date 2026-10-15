@@ -132,35 +132,38 @@ How to read this:
 One sample per question, one judge, and judges disagree: Haiku vs Sonnet changed one headline number from 92% to 38%.
 Treat the numbers as a smoke test that catches regressions and obvious failures, not as a benchmark.
 
-## Experiment: stricter grounding prompt (`results/generation-v2-grounding.*`)
+## Experiment: stricter grounding prompt (`results/generation-v2-*.json`, `results/grounding-comparison.json`)
 
 Hypothesis: many unsupported claims are padding ("los requisitos pueden variar según la aseguradora"), so telling the
 agent to state only what the retrieved passages say should remove them without hurting correctness.
 
 Change: a "fidelidad a las fuentes" section in the agent instructions (only what the results say, no uncited
 documents or pages, missing information marked as such, an entity's own policy before general procedures, short
-answers). Method: re-run the 30 questions that had an unsupported claim or a non-correct verdict in the baseline run
-(Haiku judge, cutoff 0.6, one sample each).
+answers). Method: the 30 questions that had an unsupported claim or a non-correct verdict were re-run first, then
+the other 33, so the comparison covers all 63 (Haiku judge, cutoff 0.6, one sample per question per prompt).
 
-| same 30 questions | baseline | stricter prompt |
+| all 63 questions | original prompt | stricter prompt |
 |---|---|---|
-| unsupported claims (all answers) | 47 | 9 |
-| answers with at least one | 30 | 8 |
-| claims supported, answerable questions | 87% | 98% |
-| mean answer length (characters) | 2158 | 1722 |
-| answers judged correct, answerable (22) | 20 | 21 |
-| unanswerable questions that admit the gap (8) | 8 | 8 |
+| answers with at least one unsupported claim (answerable) | 44% | 10% |
+| claims supported by the retrieved text (answerable) | 93.6% | 98.8% |
+| answers judged correct (answerable, 50) | 96% | 98% |
+| wrongly refused | 0% | 0% |
+| cited a page or URL that was never retrieved | 4% | 0% |
+| mean answer length, answerable (characters) | 2303 | 1684 |
+| admits the information is missing (unanswerable, 13) | 100% | 100% |
 
-Per question: `faq-imss` and `imss-carta-patronal` went from partial to correct, `sura-incapacidad` from correct to
-partial. Four of the five claims still flagged on unanswerable questions are the assistant describing its own scope.
+On the 33 questions that were already clean in the baseline, the stricter prompt kept everything at 100% correct with
+no false refusals, so the gain did not come at the cost of regressions there. Per question on the first 30:
+`faq-imss` and `imss-carta-patronal` went from partial to correct, `sura-incapacidad` from correct to partial.
 
 Read it with these limits:
 
-- **Selection bias.** The subset was chosen *because* the baseline had problems, so the baseline looks as bad as it can
-  and some improvement is regression to the mean. The size of the drop (47 to 9) is too large to be only that, but the
-  honest comparison is a full re-run of all 63 questions under both prompts.
-- **Nothing was checked on the other 33 questions**, so a new problem there (over-refusing, for example) would not show.
-- One sample per question, one cheap judge, and the unsupported-claim metric depends on the judge.
+- One sample per question per prompt, and one cheap judge. The unsupported-claim metric depends on the judge, so quote
+  the direction and size of the change rather than the exact percentages.
+- The "handled correctly" score for unanswerable questions moved from 38% to 54%, but it is dominated by the cheap
+  judge flagging the assistant's own scope statements, so it is not evidence either way; "admits the gap" stayed at 100%.
 - Two instructions changed at once (grounding, and entity policy first). The `faq-imss` fix is probably the second.
+- Shorter answers are part of the effect: fewer sentences means fewer claims to be wrong. Correctness did not fall, so
+  the answers did not lose what mattered, but a user who wants more guidance gets less of it.
 
 The stricter prompt is now the agent's default (`src/mastra/agents/insurance-agent.ts`); the previous prompt is in git history.

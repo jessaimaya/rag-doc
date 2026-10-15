@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { summarize } from '../rag/gen-summary';
 import { summarizeRanks, type EvalQuestion } from '../rag/metrics';
 
 /**
@@ -89,7 +90,12 @@ push({ run: 'sonnet_cutoff_off', run_label: 'Cutoff off', judge: 'Sonnet', cutof
 push({ run: 'sonnet_cutoff_on', run_label: 'Cutoff on', judge: 'Sonnet', cutoff: 0.6, note: `${sonnetNote}; 2 questions errored in the judge` },
   { n: 49, correct: 0.98, partial: 0.02, incorrect: 0, falseRefusal: 0, faithfulness: 0.89, withUnsupported: 0.67, fabricatedCitation: 0.02 },
   { n: 12, handled: 0.92, admitsMissing: 1, withUnsupported: 0.08, byTag: { out_of_scope: { handled: 1 }, near_miss: { handled: 0.8 } } });
-push({ run: 'haiku_cutoff_on', run_label: 'Cutoff on, cheap judge', judge: 'Haiku', cutoff: 0.6, note: 'Haiku judge; page/URL metadata visible to the judge' }, g.answerable, g.unanswerable);
+push({ run: 'haiku_cutoff_on', run_label: 'Original prompt', judge: 'Haiku', cutoff: 0.6, note: 'Haiku judge; page/URL metadata visible to the judge' }, g.answerable, g.unanswerable);
+// Same questions and judge after the stricter grounding instructions: 30 re-run first, then the other 33.
+const rerun = [...read<any>('results/generation-v2-grounding.json')[0].rows, ...read<any>('results/generation-v2-rest.json')[0].rows];
+const grounded = summarize(rerun);
+if (rerun.length !== generation.rows.length) throw new Error('the stricter-prompt runs do not cover every question');
+push({ run: 'haiku_grounded', run_label: 'Stricter prompt', judge: 'Haiku', cutoff: 0.6, note: 'Haiku judge; stricter grounding instructions; all questions re-run' }, grounded.answerable, grounded.unanswerable);
 write('generation_summary', rows);
 
 // ---------- one row per question ----------

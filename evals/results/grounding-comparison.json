@@ -1,0 +1,36 @@
+{
+ "baseline": {
+  "nA": 50,
+  "nU": 13,
+  "correct": 0.96,
+  "partial": 0.04,
+  "incorrect": 0.0,
+  "falseRefusal": 0.0,
+  "faith": 0.9360902255639098,
+  "withUns": 0.44,
+  "unsTotal": 34,
+  "claims": 532,
+  "fab": 0.04,
+  "len": 2303.3,
+  "admits": 1.0,
+  "handled": 0.38461538461538464,
+  "ulen": 1183
+ },
+ "v2": {
+  "nA": 50,
+  "nU": 13,
+  "correct": 0.98,
+  "partial": 0.02,
+  "incorrect": 0.0,
+  "falseRefusal": 0.0,
+  "faith": 0.9881796690307328,
+  "withUns": 0.1,
+  "unsTotal": 5,
+  "claims": 423,
+  "fab": 0.0,
+  "len": 1683.98,
+  "admits": 1.0,
+  "handled": 0.5384615384615384,
+  "ulen": 870.7692307692307
+ }
+}

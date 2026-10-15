@@ -99,7 +99,7 @@
     <div class="ev-tiles">
       <div class="ev-tile"><span class="ev-tl">Right passage in the top 5</span><span class="ev-big" data-source="retrieval_summary" data-field="hit5" data-where="config=hybrid_rerank&amp;tag=all" data-fmt="pct">—</span><span class="ev-cap">Hybrid search with reranking. Vector search alone: <b data-source="retrieval_summary" data-field="hit5" data-where="config=vector&amp;tag=all" data-fmt="pct">—</b></span></div>
       <div class="ev-tile"><span class="ev-tl">Right passage ranked first</span><span class="ev-big" data-source="retrieval_summary" data-field="hit1" data-where="config=hybrid_rerank&amp;tag=all" data-fmt="pct">—</span><span class="ev-cap">Hybrid with reranking. Vector alone: <b data-source="retrieval_summary" data-field="hit1" data-where="config=vector&amp;tag=all" data-fmt="pct">—</b></span></div>
-      <div class="ev-tile"><span class="ev-tl">Answers judged correct</span><span class="ev-big" data-source="generation_summary" data-field="value" data-where="run=haiku_cutoff_on&amp;group=answerable&amp;metric=correct" data-fmt="pct">—</span><span class="ev-cap">Cheap Haiku judge. Wrongly refused: <b data-source="generation_summary" data-field="value" data-where="run=haiku_cutoff_on&amp;group=answerable&amp;metric=false_refusal" data-fmt="pct">—</b></span></div>
+      <div class="ev-tile"><span class="ev-tl">Answers judged correct</span><span class="ev-big" data-source="generation_summary" data-field="value" data-where="run=haiku_grounded&amp;group=answerable&amp;metric=correct" data-fmt="pct">—</span><span class="ev-cap">Cheap Haiku judge. Wrongly refused: <b data-source="generation_summary" data-field="value" data-where="run=haiku_grounded&amp;group=answerable&amp;metric=false_refusal" data-fmt="pct">—</b></span></div>
       <div class="ev-tile"><span class="ev-tl">Missing information handled</span><span class="ev-big" data-source="generation_summary" data-field="value" data-where="run=sonnet_cutoff_on&amp;group=unanswerable&amp;metric=handled" data-fmt="pct">—</span><span class="ev-cap">Sonnet judge, relevance cutoff on. Cutoff off: <b data-source="generation_summary" data-field="value" data-where="run=sonnet_cutoff_off&amp;group=unanswerable&amp;metric=handled" data-fmt="pct">—</b></span></div>
     </div>
     <p class="ev-cap">Question set: <b data-source="question_mix" data-field="count" data-where="group=answerable" data-fmt="int">—</b> answerable, <b data-source="question_mix" data-field="count" data-where="group=out_of_scope" data-fmt="int">—</b> out of scope, and <b data-source="question_mix" data-field="count" data-where="group=near_miss" data-fmt="int">—</b> near misses (on topic, answer absent). All are small, hand-written samples: read the differences with that in mind.</p>
@@ -189,7 +189,7 @@
       <div class="ev-card"><h3>Questions with an answer in the documents</h3><div class="ev-chart" id="ev-gen-ans" data-source="generation_summary"></div></div>
       <div class="ev-card"><h3>Questions with no answer in the documents</h3><div class="ev-chart" id="ev-gen-unans" data-source="generation_summary"></div></div>
     </div>
-    <p class="ev-cap">Source: Answer-quality metrics. The first two runs were judged by a stronger model (Sonnet) and are copied from the run log, since that run's file was later overwritten. The third run is reproducible from the saved results and used a cheap judge (Haiku).</p>
+    <p class="ev-cap">Source: Answer-quality metrics. The first two runs were judged by a stronger model (Sonnet) and are copied from the run log, since that run's file was later overwritten. The last two are reproducible from the saved results and used a cheap judge (Haiku): the original prompt, then the same questions after a stricter instruction to state only what the retrieved passages say.</p>
     <div class="ev-note">
       <b>The judge changes the headline number.</b>
       <p>The same assistant looks much worse on "missing information handled" under the cheap judge, because it flagged the assistant's own boilerplate ("I can only help with insurance paperwork") as unsupported claims. Its "admits the information is missing" score is still perfect. Treat the cheap judge as a smoke test and quote the stronger judge's numbers.</p>
@@ -221,7 +221,7 @@
       <li><b>The chat model no longer existed</b><span>Running the assistant end to end returned a 404 for the old model, then a rejection of the temperature setting on the new one. Both are fixed.</span></li>
       <li><b>The judge could not see page numbers</b><span>It marked correct citations as unsupported. It now sees the same page and link metadata the assistant was given.</span></li>
       <li><b>The citation checker misread a postal code</b><span>"C.P. 00000" in the fictional clinic's address counted as a fabricated page. The pattern is stricter now.</span></li>
-      <li><b>The assistant padded answers, then was told to stop</b><span>Many answers added plausible details the passages do not state. A stricter "only what the results say" instruction removed most of them when the affected questions were re-run, and answers got shorter. One answer got worse and two got better. It was tested on a hand-picked subset, so a full re-run is still owed.</span></li>
+      <li><b>The assistant padded answers, then was told to stop</b><span>Many answers added plausible details the passages do not state. A stricter "only what the results say" instruction removed most of them across all questions, and answers got shorter. Correctness did not drop and nothing was wrongly refused, which the last two bars in the answer charts show.</span></li>
       <li><b>A question answered from the wrong document</b><span>Asked whether the clinic can issue an IMSS disability note, the assistant answered from the IMSS procedure instead of saying plainly that the clinic is private. The same grounding instruction fixed it in the re-run, but that is a single question.</span></li>
     </ul>
   </section>
@@ -417,7 +417,7 @@ npm run dashboard:data</code></pre><p class="ev-cap">Retrieval evals call the em
   }
 
   // ---------- answers ----------
-  const RUN_COLORS = () => [MUTED, dash.colors[0], dash.colors[1]];
+  const RUN_COLORS = () => [MUTED, dash.colors[0], dash.colors[1], dash.colors[2]];
   const LOWER_BETTER = new Set(['false_refusal', 'incorrect', 'partial', 'with_unsupported', 'fabricated_citation']);
   function drawGen(hostId, group, metrics) {
     const host = $(hostId);
@@ -449,7 +449,7 @@ npm run dashboard:data</code></pre><p class="ev-cap">Retrieval evals call the em
     const lg = $('#ev-gen-legend'); lg.replaceChildren();
     if (!ok('generation_summary')) return;
     const runs = [...new Map(rowsOf('generation_summary').map(r => [r.run, r])).values()];
-    runs.forEach((run, i) => { const s = document.createElement('span'); const sw = document.createElement('i'); sw.style.background = RUN_COLORS()[i % 3]; s.append(sw, `${run.judge} judge, ${run.run_label.toLowerCase()}`); lg.append(s); });
+    runs.forEach((run, i) => { const s = document.createElement('span'); const sw = document.createElement('i'); sw.style.background = RUN_COLORS()[i % 4]; s.append(sw, `${run.judge} judge, ${run.run_label.toLowerCase()}`); lg.append(s); });
   }
 
   // ---------- explorer ----------
