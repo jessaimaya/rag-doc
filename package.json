@@ -11,6 +11,7 @@
     "start-only": "mastra start",
     "ingest": "tsx src/mastra/scripts/ingest.ts",
     "search": "tsx src/mastra/scripts/search.ts",
+    "eval": "tsx src/mastra/scripts/eval-retrieval.ts",
     "check-db": "tsx src/mastra/scripts/check-db.ts"
   },
   "keywords": [],

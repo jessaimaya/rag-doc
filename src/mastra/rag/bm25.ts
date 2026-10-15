@@ -6,15 +6,25 @@ const STOPWORDS = new Set(
   tu un una uno unos unas y ya como mas mis tambien`.split(/\s+/),
 );
 
-/** Lowercase, strip accents, split on non-alphanumerics, drop stopwords, light Spanish stemming. */
-export function tokenize(text: string): string[] {
-  return text
+const fold = (text: string) =>
+  text
     .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+
+/**
+ * Lowercase, strip accents, split on non-alphanumerics, drop stopwords, light Spanish stemming.
+ * Hyphenated codes that contain a digit ("ST-7", "NOM-004-SSA3-2012") also yield one joined token
+ * ("st7"), because splitting them leaves fragments like "st" that match nothing in particular.
+ */
+export function tokenize(text: string): string[] {
+  const folded = fold(text);
+  const parts = folded
     .split(/[^a-z0-9ñ]+/)
     .filter(t => t.length > 1 && !STOPWORDS.has(t))
     .map(stem);
+  const codes = (folded.match(/[a-z0-9ñ]+(?:-[a-z0-9ñ]+)+/g) ?? []).filter(c => /\d/.test(c)).map(c => c.replace(/-/g, ''));
+  return [...parts, ...codes];
 }
 
 /** Light Spanish stemmer: drop plural "s" and one final vowel, so trámite/trámites and médico/médica/médicos collapse. */

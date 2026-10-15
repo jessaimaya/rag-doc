@@ -23,7 +23,7 @@ import { embed } from '../rag/voyage';
  */
 
 // Bump when chunking logic changes so unchanged files are re-chunked.
-const CHUNKER_VERSION = 'v1';
+const CHUNKER_VERSION = 'v3';
 
 const args = process.argv.slice(2);
 const flag = (name: string) => args.includes(`--${name}`);

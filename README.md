@@ -35,6 +35,7 @@ npm run ingest         # ingests everything in documents/manifest.json
 npm run search -- "¿qué necesito para una incapacidad?"   # inspect retrieval
 NODE_ENV=development npm run dev   # backend on http://localhost:4111, open API allowed in dev
 npm test               # unit tests
+npm run eval           # retrieval evals (needs the database and the Voyage key)
 ```
 
 Frontend:
@@ -73,12 +74,12 @@ The knowledge base is built only from public documents plus one fictional clinic
 
 - Validated config at startup (one `config.ts`; ingestion is already a single path).
 - A larger public corpus.
-- Retrieval evals (hit rate, MRR, faithfulness, refusals) comparing vector, hybrid and reranked search.
+- ~~Retrieval evals~~ done: hit rate and MRR for vector, BM25, hybrid and reranked search, see [evals/README.md](evals/README.md). Still to do: generation evals (faithfulness, refusals) and using the rerank score as a "no relevant documents" cutoff.
 - Appointment booking tools with guardrails.
 - WhatsApp channel and conversation memory.
 - Public demo with a fictional clinic.
 
 ## Limitations
 
-- No retrieval evals yet. Scanned PDFs (no text layer) are not supported. BM25 is in memory, which is fine for thousands of chunks, not millions.
+- Retrieval evals exist, but there are no generation evals yet. Scanned PDFs (no text layer) are not supported. BM25 is in memory, which is fine for thousands of chunks, not millions.
 - Not a medical product and not a production system. It must not be used for clinical decisions.

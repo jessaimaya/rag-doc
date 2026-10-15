@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-10-15 — Retrieval evals
+
+- `npm run eval`: 57 judged questions, six configurations (vector, BM25, hybrid, each with and without rerank), Hit@k, MRR, latency, and an out-of-scope score analysis. Results in `evals/results/`, method and findings in `evals/README.md`.
+- Retriever: `mode` (vector / bm25 / hybrid), `rrfWeights`, `queryEmbedding` options; rerank now also runs for a single candidate.
+- BM25 tokenizer keeps hyphenated codes (`ST-7` -> `st7`).
+- Chunker: short sibling articles folded together are labelled as a range; table-of-contents lines are no longer headings (chunker version v3, re-ingest to apply).
+
 ## 2026-10-15 — Hybrid retrieval and manifest-driven ingestion
 
 ### Ingestion

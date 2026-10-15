@@ -1,0 +1,710 @@
+[
+  {
+    "id": "faq-sabado",
+    "question": "¿Puedo ir al consultorio un sábado por la tarde?",
+    "tag": "semantic",
+    "relevant": [
+      {
+        "doc": "clinica-valle-verde-faq-md",
+        "mustContain": [
+          "Sábado",
+          "9:00 a 14:00"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "faq-precio-primera",
+    "question": "¿Cuánto cuesta la primera consulta?",
+    "tag": "lexical",
+    "relevant": [
+      {
+        "doc": "clinica-valle-verde-faq-md",
+        "mustContain": [
+          "Consulta de primera vez",
+          "$900"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "faq-meses",
+    "question": "¿Puedo pagar en mensualidades con mi tarjeta?",
+    "tag": "semantic",
+    "relevant": [
+      {
+        "doc": "clinica-valle-verde-faq-md",
+        "mustContain": [
+          "meses sin intereses"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "faq-no-show",
+    "question": "Si no aviso que no voy a ir a mi cita, ¿me cobran algo?",
+    "tag": "semantic",
+    "relevant": [
+      {
+        "doc": "clinica-valle-verde-faq-md",
+        "mustContain": [
+          "Inasistencia sin aviso",
+          "50%"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "faq-tarde",
+    "question": "Llegué 10 minutos tarde, ¿todavía me atienden?",
+    "tag": "semantic",
+    "relevant": [
+      {
+        "doc": "clinica-valle-verde-faq-md",
+        "mustContain": [
+          "15 minutos de tolerancia"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "faq-factura-dias",
+    "question": "¿En cuántos días hábiles me llega la factura?",
+    "tag": "lexical",
+    "relevant": [
+      {
+        "doc": "clinica-valle-verde-faq-md",
+        "mustContain": [
+          "3 días hábiles"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "faq-imss",
+    "question": "Tengo servicio médico del seguro social, ¿puedo sacar mi incapacidad con ustedes?",
+    "tag": "semantic",
+    "relevant": [
+      {
+        "doc": "clinica-valle-verde-faq-md",
+        "mustContain": [
+          "no somos unidad médica del IMSS"
+        ]
+      }
+    ],
+    "note": "Distractor: the IMSS procedure document is topically close but does not answer for this clinic."
+  },
+  {
+    "id": "faq-aseguradoras",
+    "question": "¿Con qué aseguradoras trabajan?",
+    "tag": "lexical",
+    "relevant": [
+      {
+        "doc": "clinica-valle-verde-faq-md",
+        "mustContain": [
+          "Apoyamos trámites con"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "faq-llevar",
+    "question": "¿Qué debo llevar la primera vez que vaya con la doctora?",
+    "tag": "semantic",
+    "relevant": [
+      {
+        "doc": "clinica-valle-verde-faq-md",
+        "mustContain": [
+          "Identificación oficial vigente (INE o pasaporte)"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "faq-anticipacion",
+    "question": "¿Con cuánta anticipación puedo agendar una cita?",
+    "tag": "lexical",
+    "relevant": [
+      {
+        "doc": "clinica-valle-verde-faq-md",
+        "mustContain": [
+          "hasta con 60 días de anticipación"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "faq-acceso",
+    "question": "¿Hay donde estacionarse y acceso para silla de ruedas?",
+    "tag": "semantic",
+    "relevant": [
+      {
+        "doc": "clinica-valle-verde-faq-md",
+        "mustContain": [
+          "estacionamiento para pacientes",
+          "rampa de acceso"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "faq-telefono",
+    "question": "¿Cuál es el teléfono del consultorio Valle Verde?",
+    "tag": "exact",
+    "relevant": [
+      {
+        "doc": "clinica-valle-verde-faq-md",
+        "mustContain": [
+          "55 5555 0100"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "faq-factura-datos",
+    "question": "¿Qué datos necesito para pedir mi factura?",
+    "tag": "semantic",
+    "relevant": [
+      {
+        "doc": "clinica-valle-verde-faq-md",
+        "mustContain": [
+          "constancia de situación fiscal"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "guia-app",
+    "question": "¿Cómo ingreso en la app de GNP el trámite para programar mi cirugía?",
+    "tag": "semantic",
+    "relevant": [
+      {
+        "doc": "guia-tramite-programacion-de-cirugia-pdf",
+        "mustContain": [
+          "Programación de cirugía",
+          "Soy Cliente GNP"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "guia-complementaria",
+    "question": "¿Qué documentación complementaria piden para programar una cirugía?",
+    "tag": "lexical",
+    "relevant": [
+      {
+        "doc": "guia-tramite-programacion-de-cirugia-pdf",
+        "mustContain": [
+          "Presupuesto desglosado por cada integrante del equipo médico"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "guia-quien-llena",
+    "question": "¿Quién debe llenar el informe médico y quién el aviso de accidente?",
+    "tag": "semantic",
+    "relevant": [
+      {
+        "doc": "guia-tramite-programacion-de-cirugia-pdf",
+        "mustContain": [
+          "debidamente llenado por tu médico tratante"
+        ]
+      },
+      {
+        "doc": "clinica-valle-verde-faq-md",
+        "mustContain": [
+          "la doctora llena el informe médico"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "guia-tinta",
+    "question": "¿Con qué tinta debo llenar el formato de aviso de accidente?",
+    "tag": "exact",
+    "relevant": [
+      {
+        "doc": "guia-tramite-programacion-de-cirugia-pdf",
+        "mustContain": [
+          "negra o azul"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "guia-10-dias",
+    "question": "¿En cuántos días debe ocurrir el primer gasto para que se considere accidente?",
+    "tag": "lexical",
+    "relevant": [
+      {
+        "doc": "guia-tramite-programacion-de-cirugia-pdf",
+        "mustContain": [
+          "primer gasto",
+          "10 días"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "sura-incapacidad",
+    "question": "¿Qué papeles necesito para reclamar por una incapacidad con SURA?",
+    "tag": "semantic",
+    "relevant": [
+      {
+        "doc": "sura-aviso-accidente-enfermedad-pdf",
+        "mustContain": [
+          "Último recibo de sueldo del asegurado"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "sura-defuncion",
+    "question": "Falleció el asegurado, ¿qué documentos tienen que entregar los beneficiarios a la aseguradora?",
+    "tag": "semantic",
+    "relevant": [
+      {
+        "doc": "sura-aviso-accidente-enfermedad-pdf",
+        "mustContain": [
+          "Acta de defunción"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "sura-facturas",
+    "question": "¿Cómo deben ser las facturas de hospital para el reembolso de gastos médicos?",
+    "tag": "lexical",
+    "relevant": [
+      {
+        "doc": "sura-aviso-accidente-enfermedad-pdf",
+        "mustContain": [
+          "requerimientos de la SHCP"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "sura-farmacia",
+    "question": "Compré medicinas en una farmacia fuera del hospital, ¿cómo las compruebo?",
+    "tag": "semantic",
+    "relevant": [
+      {
+        "doc": "sura-aviso-accidente-enfermedad-pdf",
+        "mustContain": [
+          "notas de farmacia"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "gnp-cec",
+    "question": "¿Qué enfermedades cubre la cobertura de enfermedades catastróficas CEC-Nacional?",
+    "tag": "lexical",
+    "relevant": [
+      {
+        "doc": "gnp-aviso-accidente-pdf",
+        "mustContain": [
+          "cáncer",
+          "trasplante"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "gnp-ministerio",
+    "question": "¿Qué debo anexar al aviso si el accidente fue en auto?",
+    "tag": "semantic",
+    "relevant": [
+      {
+        "doc": "gnp-aviso-accidente-pdf",
+        "mustContain": [
+          "ANEXAR COPIA DE LA ACTUACIÓN DEL MINISTERIO PÚBLICO"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "issste-lic-familiar",
+    "question": "¿Cuántos días de licencia médica puede darme un médico familiar en la primera consulta?",
+    "tag": "semantic",
+    "relevant": [
+      {
+        "doc": "issste-reglamento-servicios-medicos-pdf",
+        "mustContain": [
+          "uno hasta siete días"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "issste-lic-especialista",
+    "question": "¿Hasta cuántos días puede expedir licencia un médico especialista?",
+    "tag": "lexical",
+    "relevant": [
+      {
+        "doc": "issste-reglamento-servicios-medicos-pdf",
+        "mustContain": [
+          "veintiocho días"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "issste-lic-urgencias",
+    "question": "Si me dan licencia en urgencias, ¿por cuánto tiempo puede ser?",
+    "tag": "semantic",
+    "relevant": [
+      {
+        "doc": "issste-reglamento-servicios-medicos-pdf",
+        "mustContain": [
+          "uno a tres días"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "issste-urgencias-no-derechohabiente",
+    "question": "¿Atienden en urgencias del ISSSTE a quien no es derechohabiente?",
+    "tag": "semantic",
+    "relevant": [
+      {
+        "doc": "issste-reglamento-servicios-medicos-pdf",
+        "mustContain": [
+          "independientemente de que sea o no Derechohabiente"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "issste-24h",
+    "question": "¿Por cuánto tiempo atienden urgencias a una persona que no es derechohabiente?",
+    "tag": "semantic",
+    "relevant": [
+      {
+        "doc": "issste-reglamento-servicios-medicos-pdf",
+        "mustContain": [
+          "lapso máximo de 24 horas"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "issste-teleconsulta",
+    "question": "¿Con cuántos días de anticipación se programa una teleconsulta?",
+    "tag": "lexical",
+    "relevant": [
+      {
+        "doc": "issste-reglamento-servicios-medicos-pdf",
+        "mustContain": [
+          "siete días de anticipación"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "issste-domicilio",
+    "question": "Mi mamá no puede salir de casa, ¿cómo pido atención médica a domicilio?",
+    "tag": "semantic",
+    "relevant": [
+      {
+        "doc": "issste-reglamento-servicios-medicos-pdf",
+        "mustContain": [
+          "deberán solicitarse en la Unidad Médica de adscripción"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "issste-consentimiento",
+    "question": "¿Qué es la Carta de Consentimiento Bajo Información en hospitalización?",
+    "tag": "lexical",
+    "relevant": [
+      {
+        "doc": "issste-reglamento-servicios-medicos-pdf",
+        "mustContain": [
+          "Carta de Consentimiento Bajo Información"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "issste-subsecuente",
+    "question": "¿Cuál es el máximo acumulable de días en licencias médicas subsecuentes?",
+    "tag": "lexical",
+    "relevant": [
+      {
+        "doc": "issste-reglamento-servicios-medicos-pdf",
+        "mustContain": [
+          "veintiún días"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "imss-citt",
+    "question": "¿Qué es el CITT?",
+    "tag": "exact",
+    "relevant": [
+      {
+        "doc": "imss-incapacidad-9220-003-329-pdf",
+        "mustContain": [
+          "Certificado de Incapacidad Temporal para el Trabajo"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "imss-st7",
+    "question": "¿Qué es el formato ST-7?",
+    "tag": "exact",
+    "relevant": [
+      {
+        "doc": "imss-incapacidad-9220-003-329-pdf",
+        "mustContain": [
+          "ST-7",
+          "Aviso de atención medica inicial"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "imss-subsidio",
+    "question": "¿Qué es un subsidio por incapacidad?",
+    "tag": "semantic",
+    "relevant": [
+      {
+        "doc": "imss-incapacidad-9220-003-329-pdf",
+        "mustContain": [
+          "Prestación en dinero que se otorga"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "imss-carta-patronal",
+    "question": "¿Qué debe contener la carta patronal para certificar el derecho al subsidio?",
+    "tag": "lexical",
+    "relevant": [
+      {
+        "doc": "imss-incapacidad-9220-003-329-pdf",
+        "mustContain": [
+          "Carta patronal"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "imss-140bis",
+    "question": "¿Qué anotación debe llevar la licencia del artículo 140 Bis para que la certifiquen?",
+    "tag": "exact",
+    "relevant": [
+      {
+        "doc": "imss-incapacidad-9220-003-329-pdf",
+        "mustContain": [
+          "Licencia LSS 140 Bis"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "imss-movimientos",
+    "question": "¿Qué es la constancia de presentación de movimientos afiliatorios?",
+    "tag": "semantic",
+    "relevant": [
+      {
+        "doc": "imss-incapacidad-9220-003-329-pdf",
+        "mustContain": [
+          "constancia de presentación de movimientos"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "metlife-rectificacion",
+    "question": "Mi póliza dice algo diferente a lo que me ofrecieron, ¿qué puedo hacer?",
+    "tag": "semantic",
+    "relevant": [
+      {
+        "doc": "metlife-condiciones-gmm-colectivo-pdf",
+        "mustContain": [
+          "no concordaren con la oferta"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "metlife-hernias",
+    "question": "¿Cuánto tiempo debe pasar para que cubran las hernias?",
+    "tag": "lexical",
+    "relevant": [
+      {
+        "doc": "metlife-condiciones-gmm-colectivo-pdf",
+        "mustContain": [
+          "Se cubrirán las hernias"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "metlife-recien-nacido",
+    "question": "¿Cubren los gastos de un bebé recién nacido?",
+    "tag": "semantic",
+    "relevant": [
+      {
+        "doc": "metlife-condiciones-gmm-colectivo-pdf",
+        "mustContain": [
+          "recién nacido"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "metlife-hotel",
+    "question": "¿Qué incluye la cobertura de gastos de hotel por convalecencia?",
+    "tag": "lexical",
+    "relevant": [
+      {
+        "doc": "metlife-condiciones-gmm-colectivo-pdf",
+        "mustContain": [
+          "Gastos de hotel por convalecencia"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "metlife-verificar",
+    "question": "¿Qué debo hacer antes de un tratamiento para saber si el seguro lo cubre?",
+    "tag": "semantic",
+    "relevant": [
+      {
+        "doc": "metlife-condiciones-gmm-colectivo-pdf",
+        "mustContain": [
+          "Deberás revisar con anticipación"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "metlife-mora",
+    "question": "¿Qué es la indemnización por mora en el seguro?",
+    "tag": "lexical",
+    "relevant": [
+      {
+        "doc": "metlife-condiciones-gmm-colectivo-pdf",
+        "mustContain": [
+          "Indemnización por Mora"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "metlife-ambulancia",
+    "question": "¿Qué cubre la ambulancia terrestre nacional?",
+    "tag": "lexical",
+    "relevant": [
+      {
+        "doc": "metlife-condiciones-gmm-colectivo-pdf",
+        "mustContain": [
+          "Ambulancia Terrestre Nacional"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "conamed-segunda-opinion",
+    "question": "¿Tengo derecho a pedir que otro médico revise mi caso?",
+    "tag": "semantic",
+    "relevant": [
+      {
+        "doc": "conamed-decalogos-derechos-pdf",
+        "mustContain": [
+          "segunda opinión"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "conamed-confidencialidad",
+    "question": "¿Mis datos y mi expediente son confidenciales?",
+    "tag": "semantic",
+    "relevant": [
+      {
+        "doc": "conamed-decalogos-derechos-pdf",
+        "mustContain": [
+          "Confidencialidad"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "conamed-rechazar",
+    "question": "¿Puedo rechazar un tratamiento que me proponen?",
+    "tag": "semantic",
+    "relevant": [
+      {
+        "doc": "conamed-decalogos-derechos-pdf",
+        "mustContain": [
+          "Decidir libremente sobre su atención"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "conamed-obligaciones",
+    "question": "¿Cuáles son mis obligaciones como paciente?",
+    "tag": "semantic",
+    "relevant": [
+      {
+        "doc": "conamed-decalogos-derechos-pdf",
+        "mustContain": [
+          "Tratar con respeto"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "oos-francia",
+    "question": "¿Cuál es la capital de Francia?",
+    "tag": "out_of_scope",
+    "relevant": []
+  },
+  {
+    "id": "oos-pasaporte",
+    "question": "¿Cómo renuevo mi pasaporte mexicano?",
+    "tag": "out_of_scope",
+    "relevant": []
+  },
+  {
+    "id": "oos-rodilla",
+    "question": "¿Cuánto cuesta una cirugía de rodilla en el Hospital Ángeles?",
+    "tag": "out_of_scope",
+    "relevant": []
+  },
+  {
+    "id": "oos-pozole",
+    "question": "Dame una receta de pozole rojo.",
+    "tag": "out_of_scope",
+    "relevant": []
+  },
+  {
+    "id": "oos-migrana",
+    "question": "¿Qué medicamento me recomiendas para la migraña?",
+    "tag": "out_of_scope",
+    "relevant": [],
+    "note": "Clinical advice: the assistant must decline."
+  },
+  {
+    "id": "oos-sat",
+    "question": "¿Cómo presento mi declaración anual de impuestos ante el SAT?",
+    "tag": "out_of_scope",
+    "relevant": []
+  },
+  {
+    "id": "oos-visa",
+    "question": "¿Cuáles son los requisitos para tramitar la visa americana?",
+    "tag": "out_of_scope",
+    "relevant": []
+  }
+]

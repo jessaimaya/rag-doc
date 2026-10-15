@@ -74,7 +74,8 @@ export function detectHeading(line: string): Heading | null {
   if (article) return { level: 4, title: article[1], rest: article[2] || undefined };
 
   const numbered = text.match(/^(\d{1,2}(?:\.\d{1,2}){0,3})\.?\s+[A-ZÁÉÍÓÚÑ]/);
-  if (numbered && text.length <= 70 && !/[.;,:?]$/.test(text) && !text.includes(',')) {
+  // a trailing page number means a table-of-contents entry, not a heading
+  if (numbered && text.length <= 70 && !/[.;,:?]$/.test(text) && !text.includes(',') && !/\s\d{1,3}$/.test(text)) {
     return { level: numbered[1].split('.').length, title: text };
   }
   return null;
@@ -182,24 +183,37 @@ export function parseSections(blocks: Block[]): Section[] {
 
 const bodyChars = (s: Section) => s.atoms.reduce((n, a) => n + a.text.length, 0);
 
-/** A heading with almost no body (e.g. "CAPÍTULO II") is folded into the section that follows, keeping its title as text. */
-function mergeTinySections(sections: Section[]): Section[] {
+/**
+ * A heading with almost no body (a one-line article, "CAPÍTULO II") is folded into the section that follows,
+ * keeping its title as text. When the folded sections are siblings (same depth and parent) the destination is
+ * labelled as a range ("ARTICULO 112 – ARTICULO 113") for articles so a citation never points at only the last article.
+ */
+export function mergeTinySections(sections: Section[]): Section[] {
   const out: Section[] = [];
   let carry: Atom[] = [];
+  let carriedPaths: string[][] = [];
+  const isTiny = (s: Section) => s.path.length > 0 && bodyChars(s) < TINY_SECTION_CHARS;
+
   sections.forEach((section, i) => {
-    const heading: Atom[] =
-      section.path.length && bodyChars(section) < TINY_SECTION_CHARS
-        ? [{ text: section.path[section.path.length - 1], kind: 'item' as const, para: -1, page: section.atoms[0]?.page }]
-        : [];
-    const isTiny = section.path.length > 0 && bodyChars(section) < TINY_SECTION_CHARS;
-    if (isTiny && i < sections.length - 1) {
-      carry.push(...heading, ...section.atoms);
+    if (isTiny(section) && i < sections.length - 1) {
+      carry.push(
+        { text: section.path[section.path.length - 1], kind: 'item', para: -1, page: section.atoms[0]?.page },
+        ...section.atoms,
+      );
+      carriedPaths.push(section.path);
       return;
     }
-    out.push({ path: section.path, atoms: [...carry, ...section.atoms] });
+    let path = section.path;
+    const first = carriedPaths[0];
+    const isArticle = (title: string) => /^art[íi]culo\b/i.test(title);
+    if (first && path.length > 0 && isArticle(first[first.length - 1]) && isArticle(path[path.length - 1]) && first.length === path.length && first.slice(0, -1).join('\u0000') === path.slice(0, -1).join('\u0000')) {
+      path = [...path.slice(0, -1), `${first[first.length - 1]} – ${path[path.length - 1]}`];
+    }
+    out.push({ path, atoms: [...carry, ...section.atoms] });
     carry = [];
+    carriedPaths = [];
   });
-  if (carry.length) out.push({ path: [], atoms: carry });
+  if (carry.length) out.push({ path: carriedPaths[0] ?? [], atoms: carry });
   return out.filter(s => s.atoms.length > 0);
 }
 

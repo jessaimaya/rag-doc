@@ -19,6 +19,7 @@ test('detectHeading does not treat ids, steps or prose as headings', () => {
   assert.equal(detectHeading('79483856 Enfermedades pulmonares'), null);
   assert.equal(detectHeading('1. Recibe del área solicitante el oficio, en original y copia.'), null);
   assert.equal(detectHeading('El Instituto otorgará los servicios'), null);
+  assert.equal(detectHeading('12. Envío de Información 23'), null); // table-of-contents entry
 });
 
 test('splitSentences keeps abbreviations together', () => {
@@ -51,6 +52,20 @@ test('tiny heading-only sections fold into the next section', () => {
   const sections = parseSections([{ text: 'CAPÍTULO I\nARTICULO 1.- ' + 'Texto del artículo con contenido suficiente. '.repeat(8) }]);
   assert.equal(sections.length, 1);
   assert.match(sections[0].atoms[0].text, /CAPÍTULO I/);
+});
+
+test('short sibling articles fold together and the label names the whole range', () => {
+  const text = [
+    'ARTICULO 112.- La Dirección Médica establecerá los criterios de operación.',
+    'ARTICULO 113.- ' + 'La Dirección Médica supervisará y vigilará la aplicación de la normatividad. '.repeat(3),
+    'ARTICULO 114.- ' + 'Los Directores o responsables llevarán a cabo acciones de supervisión operativa. '.repeat(3),
+  ].join('\n');
+  const sections = parseSections([{ text }]);
+  assert.equal(sections.length, 2);
+  assert.equal(sections[0].path[0], 'ARTICULO 112 – ARTICULO 113');
+  assert.match(sections[0].atoms.map(a => a.text).join(' '), /supervisará/);
+  assert.match(sections[0].atoms.map(a => a.text).join(' '), /criterios de operación/);
+  assert.equal(sections[1].path[0], 'ARTICULO 114');
 });
 
 test('splitOversize repeats the table header and respects the limit', () => {
@@ -99,6 +114,21 @@ test('tokenize folds accents, case, plurals and drops stopwords', () => {
   assert.ok(tokenize('formato 9220-003-329').includes('9220'));
   assert.deepEqual(tokenize('médico'), tokenize('médicos'));
   assert.deepEqual(tokenize('trámite'), tokenize('trámites'));
+});
+
+test('tokenize keeps hyphenated codes as one searchable token', () => {
+  assert.ok(tokenize('formato ST-7').includes('st7'));
+  assert.ok(tokenize('NOM-004-SSA3-2012').includes('nom004ssa32012'));
+  assert.ok(!tokenize('médico-quirúrgico').some(t => t === 'medicoquirurgico')); // words are not compounded
+});
+
+test('BM25 finds a code by its joined token', () => {
+  const index = new Bm25Index([
+    { id: 'st7', text: 'ST-7 aviso de atención médica inicial y calificación de probable accidente de trabajo' },
+    { id: 'st8', text: 'ST-8 aviso de atención médica inicial y calificación de probable enfermedad de trabajo' },
+    { id: 'x', text: 'formato general de solicitud' },
+  ]);
+  assert.equal(index.search('ST-7', 2)[0].id, 'st7');
 });
 
 test('BM25 ranks the chunk with the rare matching term first', () => {
