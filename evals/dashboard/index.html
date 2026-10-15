@@ -1,0 +1,568 @@
+<style>
+.ev { position: relative; max-width: 1100px; margin-inline: auto; font-family: var(--font-anthropic-sans); color: var(--color-fg); display: flex; flex-direction: column; gap: 2.75rem; padding-block: 0.5rem 3rem; }
+.ev * { box-sizing: border-box; }
+.ev h1, .ev h2, .ev h3 { margin: 0; text-wrap: balance; }
+.ev h1 { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: clamp(1.6rem, 4.2vw, 2.4rem); line-height: 1.15; max-width: 24ch; }
+.ev h2 { font-size: var(--cds-font-size-title); font-family: var(--font-anthropic-serif); font-weight: 400; line-height: 1.2; }
+.ev h3 { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); }
+.ev p { margin: 0; line-height: 1.55; max-width: 68ch; }
+.ev .ev-muted { color: var(--color-fg-muted); }
+.ev .ev-cap { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); line-height: 1.45; }
+.ev .ev-eyebrow { font-size: var(--cds-font-size-caption); letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-fg-muted); }
+.ev section { display: flex; flex-direction: column; gap: 1rem; scroll-margin-top: 4rem; }
+.ev-nav { position: sticky; top: 0; z-index: 5; display: flex; gap: 0.25rem 1rem; flex-wrap: wrap; padding: 0.6rem 0; background: var(--color-bg); border-bottom: 1px solid var(--color-border-line); font-size: var(--cds-font-size-caption); }
+.ev-nav a { color: var(--color-fg-muted); text-decoration: none; padding: 0.15rem 0; border-bottom: 1px solid transparent; }
+.ev-nav a:hover, .ev-nav a:focus-visible { color: var(--color-fg); border-bottom-color: var(--color-fg); outline: none; }
+.ev-head { display: flex; flex-direction: column; gap: 0.9rem; }
+.ev-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); gap: var(--cds-gap-md); }
+.ev-tile { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); display: flex; flex-direction: column; gap: 0.35rem; min-width: 0; }
+.ev-tile .ev-big { font-family: var(--font-anthropic-serif); font-size: 2.4rem; font-weight: 400; line-height: 1; font-variant-numeric: tabular-nums; }
+.ev-tile .ev-tl { font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); }
+.ev-tile .ev-cap b { font-weight: 600; color: var(--color-fg); font-variant-numeric: tabular-nums; }
+.ev-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); display: flex; flex-direction: column; gap: 0.75rem; min-width: 0; }
+.ev-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: var(--cds-gap-md); }
+.ev-flow { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: stretch; }
+.ev-step { flex: 1 1 8.5rem; min-width: 0; border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: 0.6rem 0.7rem; background: var(--color-panel); display: flex; flex-direction: column; gap: 0.2rem; position: relative; }
+.ev-step b { font-weight: 600; font-size: var(--cds-font-size-body); }
+.ev-step span { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); line-height: 1.35; }
+.ev-step.ev-eval { border-style: dashed; }
+.ev-lane { display: flex; flex-direction: column; gap: 0.4rem; }
+.ev-seg { display: inline-flex; border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); overflow: hidden; align-self: flex-start; flex-wrap: wrap; }
+.ev-seg button { font: inherit; font-size: var(--cds-font-size-caption); background: transparent; color: var(--color-fg-muted); border: 0; padding: 0.4rem 0.8rem; cursor: pointer; }
+.ev-seg button + button { border-left: 1px solid var(--color-border-line); }
+.ev-seg button[aria-pressed="true"] { background: var(--color-fg); color: var(--color-bg); }
+.ev-seg button:focus-visible { outline: 2px solid var(--color-fg); outline-offset: -2px; }
+.ev-legend { display: flex; flex-wrap: wrap; gap: 0.4rem 1.1rem; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.ev-legend i { display: inline-block; width: 0.7rem; height: 0.7rem; border-radius: 2px; margin-right: 0.4rem; vertical-align: -1px; }
+.ev-chart { min-height: 6rem; width: 100%; }
+.ev-chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.ev-chart text { fill: var(--color-fg-muted); font-size: 12px; font-family: var(--font-anthropic-sans); }
+.ev-chart text.ev-val { fill: var(--color-fg); font-variant-numeric: tabular-nums; }
+.ev-chart .ev-hit { fill: transparent; cursor: default; }
+.ev-status { display: flex; align-items: center; justify-content: center; gap: 0.5rem; min-height: 6rem; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.ev-status i { width: 0.375rem; height: 0.375rem; border-radius: 50%; background: var(--color-bad); }
+.ev-tip { position: absolute; z-index: 20; pointer-events: none; max-width: 22rem; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); line-height: 1.45; }
+.ev-tip .ev-tt { color: var(--cds-text-secondary); margin-bottom: 0.15rem; }
+.ev-scroll { overflow: auto; max-width: 100%; }
+.ev table { border-collapse: collapse; width: 100%; font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
+.ev th { text-align: left; font-weight: 500; color: var(--color-fg-muted); padding: 0.45rem 0.6rem; border-bottom: 1px solid var(--color-border-line); white-space: nowrap; position: sticky; top: 0; background: var(--color-panel); }
+.ev td { padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--color-border-line); vertical-align: top; }
+.ev td.ev-num, .ev th.ev-num { text-align: right; }
+.ev-explore tbody tr { cursor: pointer; }
+.ev-explore tbody tr:hover { background: color-mix(in srgb, var(--color-fg) 5%, transparent); }
+.ev-explore tbody tr[aria-selected="true"] { background: color-mix(in srgb, var(--color-fg) 10%, transparent); }
+.ev-explore tbody tr:focus-visible { outline: 2px solid var(--color-fg); outline-offset: -2px; }
+.ev-explore td.ev-q { min-width: 16rem; max-width: 26rem; }
+.ev-rk { text-align: center; font-weight: 600; }
+.ev-rk.r1 { background: color-mix(in srgb, var(--color-ok) 28%, transparent); }
+.ev-rk.r3 { background: color-mix(in srgb, var(--color-ok) 12%, transparent); }
+.ev-rk.r10 { background: color-mix(in srgb, var(--color-warn) 18%, transparent); }
+.ev-rk.rx { background: color-mix(in srgb, var(--color-bad) 22%, transparent); }
+.ev-pill { display: inline-block; padding: 0.05rem 0.5rem; border-radius: 999px; border: 1px solid var(--color-border-line); font-size: var(--cds-font-size-caption); white-space: nowrap; }
+.ev-pill.good { color: var(--color-ok); border-color: currentColor; }
+.ev-pill.mid { color: var(--color-warn); border-color: currentColor; }
+.ev-pill.bad { color: var(--color-bad); border-color: currentColor; }
+.ev-tools { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
+.ev-tools input { font: inherit; font-size: var(--cds-font-size-caption); padding: 0.4rem 0.6rem; min-width: 12rem; flex: 1 1 12rem; max-width: 22rem; background: var(--color-bg); color: var(--color-fg); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); }
+.ev-tools input:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 1px; }
+.ev-box { max-height: 26rem; }
+.ev-detail { display: flex; flex-direction: column; gap: 0.9rem; }
+.ev-detail h3 { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: 1.25rem; line-height: 1.3; }
+.ev-kv { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.5rem), 1fr)); gap: 0.5rem; }
+.ev-kv div { border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: 0.45rem 0.6rem; min-width: 0; }
+.ev-kv small { display: block; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+.ev-kv b { font-weight: 600; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.ev-answer { white-space: pre-wrap; overflow-wrap: anywhere; border-left: 2px solid var(--color-border-line); padding: 0.2rem 0 0.2rem 0.9rem; max-height: 22rem; overflow: auto; line-height: 1.5; }
+.ev-detail ul { margin: 0; padding-left: 1.1rem; display: flex; flex-direction: column; gap: 0.3rem; line-height: 1.45; }
+.ev-detail .ev-cap { max-width: none; }
+.ev-note { border-left: 3px solid var(--color-warn); padding: 0.1rem 0 0.1rem 0.9rem; display: flex; flex-direction: column; gap: 0.35rem; }
+.ev-finds { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: var(--cds-gap-md); }
+.ev-finds li { border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); display: flex; flex-direction: column; gap: 0.4rem; background: var(--color-panel); }
+.ev-finds li b { font-weight: 600; }
+.ev pre { margin: 0; padding: 0.8rem 1rem; border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); overflow: auto; font-size: var(--cds-font-size-caption); background: var(--color-panel); line-height: 1.55; }
+.ev code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.92em; }
+.ev ul.ev-plain { margin: 0; padding-left: 1.1rem; display: flex; flex-direction: column; gap: 0.4rem; line-height: 1.5; max-width: 72ch; }
+[data-dash-source-state=empty] { color: transparent; }
+[data-dash-source-state=refreshing] { opacity: 0.5; }
+@media (prefers-reduced-motion: no-preference) { .ev-tip { transition: opacity var(--cds-dur-slow); } }
+</style>
+
+<div class="ev" id="top">
+  <nav class="ev-nav" aria-label="Sections">
+    <a href="#pipeline">Pipeline</a><a href="#retrieval">Retrieval</a><a href="#cutoff">Cutoff</a><a href="#answers">Answers</a><a href="#explorer">Questions</a><a href="#findings">Findings</a><a href="#method">Method</a>
+  </nav>
+
+  <header class="ev-head">
+    <div class="ev-eyebrow">Evaluation of a Spanish-language insurance paperwork assistant</div>
+    <h1>Does it find the right paragraph, and does it say so when it can't?</h1>
+    <p class="ev-muted">A retrieval-augmented assistant answers patients' questions about IMSS, ISSSTE and private-insurer procedures in Mexico. Here is how six retrieval setups were compared, how the answers were judged, and what the tests changed in the code. Each chart names its source file, and the question explorer shows every query and answer.</p>
+    <div class="ev-tiles">
+      <div class="ev-tile"><span class="ev-tl">Right passage in the top 5</span><span class="ev-big" data-source="retrieval_summary" data-field="hit5" data-where="config=hybrid_rerank&amp;tag=all" data-fmt="pct">—</span><span class="ev-cap">Hybrid search with reranking. Vector search alone: <b data-source="retrieval_summary" data-field="hit5" data-where="config=vector&amp;tag=all" data-fmt="pct">—</b></span></div>
+      <div class="ev-tile"><span class="ev-tl">Right passage ranked first</span><span class="ev-big" data-source="retrieval_summary" data-field="hit1" data-where="config=hybrid_rerank&amp;tag=all" data-fmt="pct">—</span><span class="ev-cap">Hybrid with reranking. Vector alone: <b data-source="retrieval_summary" data-field="hit1" data-where="config=vector&amp;tag=all" data-fmt="pct">—</b></span></div>
+      <div class="ev-tile"><span class="ev-tl">Answers judged correct</span><span class="ev-big" data-source="generation_summary" data-field="value" data-where="run=haiku_cutoff_on&amp;group=answerable&amp;metric=correct" data-fmt="pct">—</span><span class="ev-cap">Cheap Haiku judge. Wrongly refused: <b data-source="generation_summary" data-field="value" data-where="run=haiku_cutoff_on&amp;group=answerable&amp;metric=false_refusal" data-fmt="pct">—</b></span></div>
+      <div class="ev-tile"><span class="ev-tl">Missing information handled</span><span class="ev-big" data-source="generation_summary" data-field="value" data-where="run=sonnet_cutoff_on&amp;group=unanswerable&amp;metric=handled" data-fmt="pct">—</span><span class="ev-cap">Sonnet judge, relevance cutoff on. Cutoff off: <b data-source="generation_summary" data-field="value" data-where="run=sonnet_cutoff_off&amp;group=unanswerable&amp;metric=handled" data-fmt="pct">—</b></span></div>
+    </div>
+    <p class="ev-cap">Question set: <b data-source="question_mix" data-field="count" data-where="group=answerable" data-fmt="int">—</b> answerable, <b data-source="question_mix" data-field="count" data-where="group=out_of_scope" data-fmt="int">—</b> out of scope, and <b data-source="question_mix" data-field="count" data-where="group=near_miss" data-fmt="int">—</b> near misses (on topic, answer absent). All are small, hand-written samples: read the differences with that in mind.</p>
+  </header>
+
+  <section id="pipeline">
+    <h2>What was built and tested</h2>
+    <div class="ev-lane">
+      <div class="ev-eyebrow">Ingestion, once per document</div>
+      <div class="ev-flow">
+        <div class="ev-step"><b>Manifest</b><span>Lists each file or URL with title, category and source.</span></div>
+        <div class="ev-step"><b>Loader</b><span>PDF, DOCX, HTML, Markdown, TXT. Repairs garbled accents.</span></div>
+        <div class="ev-step"><b>Structure split</b><span>Headings, articles, tables and list items stay whole.</span></div>
+        <div class="ev-step"><b>Semantic breaks</b><span>Sentence embeddings find topic shifts inside a section.</span></div>
+        <div class="ev-step"><b>Embed and store</b><span>Voyage embeddings in Postgres with pgvector.</span></div>
+      </div>
+    </div>
+    <div class="ev-lane">
+      <div class="ev-eyebrow">At question time</div>
+      <div class="ev-flow">
+        <div class="ev-step"><b>Vector search</b><span>Meaning: nearest chunks by cosine similarity.</span></div>
+        <div class="ev-step"><b>BM25</b><span>Words: exact terms, codes and names.</span></div>
+        <div class="ev-step"><b>Rank fusion</b><span>Reciprocal Rank Fusion merges the two lists.</span></div>
+        <div class="ev-step"><b>Rerank</b><span>A cross-encoder rescored the best candidates against the question.</span></div>
+        <div class="ev-step"><b>Relevance cutoff</b><span>Below a minimum score the tool reports "nothing relevant".</span></div>
+        <div class="ev-step"><b>Agent answers</b><span>Claude Haiku answers with the passage, page and source.</span></div>
+      </div>
+    </div>
+    <div class="ev-card">
+      <h3>Indexed documents</h3>
+      <p class="ev-cap">Eight documents, split into chunks. Public documents from IMSS, ISSSTE, CONAMED and three insurers, plus one fictional clinic FAQ written for the demo. Source: Indexed documents.</p>
+      <div class="ev-chart" id="ev-corpus" data-source="corpus"></div>
+    </div>
+  </section>
+
+  <section id="retrieval">
+    <h2>Which retrieval technique finds the right passage?</h2>
+    <p>Every question names the document and the phrases a relevant passage must contain, so the judgement does not depend on how the text was split. <b>Hit@1</b> is the share of questions whose first result was relevant, <b>Hit@5</b> whether one appears in the top five, and <b>MRR</b> rewards a higher rank (1 is perfect).</p>
+    <div class="ev-card">
+      <div class="ev-tools"><div class="ev-seg" role="group" aria-label="Question type" id="ev-ret-tags">
+        <button type="button" data-tag="all" aria-pressed="true">All questions</button><button type="button" data-tag="semantic" aria-pressed="false">Paraphrases</button><button type="button" data-tag="lexical" aria-pressed="false">Shared rare words</button><button type="button" data-tag="exact" aria-pressed="false">Codes and acronyms</button>
+      </div></div>
+      <div class="ev-legend"><span><i style="background: var(--cds-chart-muted)"></i>Hit@5: a relevant passage in the top five</span><span><i class="ev-lg1"></i>Hit@1: the first result is relevant</span></div>
+      <div class="ev-chart" id="ev-retrieval" data-source="retrieval_summary"></div>
+      <p class="ev-cap">Source: Retrieval metrics. Setups without "rerank" return the retriever's own order; "rerank" rescored the top 30 candidates with a cross-encoder.</p>
+    </div>
+    <div class="ev-card">
+      <h3>The numbers</h3>
+      <div class="ev-scroll"><table id="ev-ret-table" data-source="retrieval_summary" data-row-key="row_id">
+        <thead><tr><th data-field="label">Setup</th><th class="ev-num" data-field="n" data-fmt="int">Questions</th><th class="ev-num" data-field="hit1" data-fmt="pct">Hit@1</th><th class="ev-num" data-field="hit3" data-fmt="pct">Hit@3</th><th class="ev-num" data-field="hit5" data-fmt="pct">Hit@5</th><th class="ev-num" data-field="mrr10" data-fmt="mrr">MRR@10</th><th class="ev-num" data-field="p50_ms" data-fmt="ms">Median latency</th></tr></thead><tbody></tbody>
+      </table></div>
+    </div>
+    <div class="ev-grid">
+      <div class="ev-card"><h3>Reranking is the big win</h3><p>A cross-encoder reads the question and each candidate together. It fixed most of the cases where the right passage was found but ranked low, for a few hundred milliseconds.</p></div>
+      <div class="ev-card"><h3>BM25 added nothing once reranking was on</h3><p>On this corpus, hybrid and vector-only give the same reranked result. BM25 alone is the weakest setup, partly because the judgement counts only the exact definition passage and BM25 prefers term-dense ones.</p></div>
+      <div class="ev-card"><h3>Without a reranker, fusion hurt</h3><p>Merging a weaker ranker with equal weight pulled good vector results down. The weight sweep below shows how far a bias toward vector search recovers.</p></div>
+    </div>
+    <div class="ev-card">
+      <h3>Does the fusion weight matter?</h3>
+      <p class="ev-cap">Reciprocal Rank Fusion with vector:BM25 weights of 1:1, 2:1 and 3:1, with and without the reranker. Source: Fusion weight sweep.</p>
+      <div class="ev-scroll"><table id="ev-sweep-table" data-source="fusion_sweep" data-row-key="row_id">
+        <thead><tr><th data-field="label">Setup</th><th class="ev-num" data-field="hit1" data-fmt="pct">Hit@1</th><th class="ev-num" data-field="hit3" data-fmt="pct">Hit@3</th><th class="ev-num" data-field="hit5" data-fmt="pct">Hit@5</th><th class="ev-num" data-field="mrr10" data-fmt="mrr">MRR@10</th></tr></thead><tbody></tbody>
+      </table></div>
+      <p>Biasing toward vector search narrows the gap without a reranker but never beats vector alone. With the reranker the weights move the result by at most one question.</p>
+    </div>
+  </section>
+
+  <section id="cutoff">
+    <h2>Can the score tell when there is no answer?</h2>
+    <p>After reranking, the best passage has a relevance score. If it is under a cutoff, the assistant is told "nothing relevant" and should say it doesn't know, instead of improvising. Each dot is one question's best score.</p>
+    <div class="ev-card">
+      <div class="ev-legend" id="ev-score-legend"></div>
+      <div class="ev-chart" id="ev-scores" data-source="question_results"></div>
+      <p class="ev-cap">Source: Per-question results. Answerable and out-of-scope scores come from the retrieval eval, near-miss scores from the agent runs.</p>
+    </div>
+    <div class="ev-note">
+      <b>Unrelated questions are separable. Near misses are not.</b>
+      <p>Questions about passports or recipes score well below real answers, so the cutoff catches them. Near misses, on topic but absent from the documents, score as high as genuine answers, so retrieval alone cannot reject them. For those the assistant relies on its instructions to admit the gap, and the answer judge checks that it does.</p>
+    </div>
+  </section>
+
+  <section id="answers">
+    <h2>Are the answers right, faithful, and honest about gaps?</h2>
+    <p>Each question went through the real assistant, then an LLM judge checked the answer against the passage it should have used and listed every factual claim with whether the retrieved text supports it. Fabricated page numbers and links were counted with a plain text check.</p>
+    <div class="ev-legend" id="ev-gen-legend"></div>
+    <div class="ev-grid">
+      <div class="ev-card"><h3>Questions with an answer in the documents</h3><div class="ev-chart" id="ev-gen-ans" data-source="generation_summary"></div></div>
+      <div class="ev-card"><h3>Questions with no answer in the documents</h3><div class="ev-chart" id="ev-gen-unans" data-source="generation_summary"></div></div>
+    </div>
+    <p class="ev-cap">Source: Answer-quality metrics. The first two runs were judged by a stronger model (Sonnet) and are copied from the run log, since that run's file was later overwritten. The third run is reproducible from the saved results and used a cheap judge (Haiku).</p>
+    <div class="ev-note">
+      <b>The judge changes the headline number.</b>
+      <p>The same assistant looks much worse on "missing information handled" under the cheap judge, because it flagged the assistant's own boilerplate ("I can only help with insurance paperwork") as unsupported claims. Its "admits the information is missing" score is still perfect. Treat the cheap judge as a smoke test and quote the stronger judge's numbers.</p>
+    </div>
+  </section>
+
+  <section id="explorer">
+    <h2>Every question and answer</h2>
+    <p>Rank cells show where the first relevant passage landed for each setup (green is first, red means outside the top ten). Select a row for the agent's answer, the passages it saw and the judge's verdict.</p>
+    <div class="ev-card">
+      <div class="ev-tools">
+        <div class="ev-seg" role="group" aria-label="Question group" id="ev-ex-groups"><button type="button" data-group="all" aria-pressed="true">All</button><button type="button" data-group="answerable" aria-pressed="false">Answerable</button><button type="button" data-group="out_of_scope" aria-pressed="false">Out of scope</button><button type="button" data-group="near_miss" aria-pressed="false">Near miss</button></div>
+        <input type="search" id="ev-ex-search" placeholder="Search question or id" aria-label="Search questions">
+      </div>
+      <div class="ev-scroll ev-box"><table class="ev-explore" id="ev-ex-table" data-source="question_results" data-row-key="id">
+        <thead><tr><th data-field="id">Id</th><th data-field="question">Question</th><th class="ev-rkh" data-field="rank_vector">Vector</th><th class="ev-rkh" data-field="rank_bm25">BM25</th><th class="ev-rkh" data-field="rank_hybrid">Hybrid</th><th class="ev-rkh" data-field="rank_vector_rerank">Vec+RR</th><th class="ev-rkh" data-field="rank_bm25_rerank">BM25+RR</th><th class="ev-rkh" data-field="rank_hybrid_rerank">Hyb+RR</th><th data-field="gen_verdict">Answer</th></tr></thead><tbody></tbody>
+      </table></div>
+      <p class="ev-cap" id="ev-ex-count"></p>
+    </div>
+    <div class="ev-card ev-detail" id="ev-detail" data-source="question_results"></div>
+  </section>
+
+  <section id="findings">
+    <h2>What the tests changed in the code</h2>
+    <ul class="ev-finds">
+      <li><b>Codes lost a digit</b><span>The retrieval eval's exact-code questions showed that "ST-7" was indexed as "st": the hyphenated number was dropped. Codes now also produce one joined token.</span></li>
+      <li><b>Legal articles carried the wrong label</b><span>While writing questions from the chunks, one labelled "Article 113" turned out to contain Article 112 too. Short neighbouring articles are now labelled as a range, so citations point at the right article.</span></li>
+      <li><b>A table of contents read as headings</b><span>The insurer's contents page produced nonsense section names. Lines ending in a page number are no longer headings.</span></li>
+      <li><b>The chat model no longer existed</b><span>Running the assistant end to end returned a 404 for the old model, then a rejection of the temperature setting on the new one. Both are fixed.</span></li>
+      <li><b>The judge could not see page numbers</b><span>It marked correct citations as unsupported. It now sees the same page and link metadata the assistant was given.</span></li>
+      <li><b>The citation checker misread a postal code</b><span>"C.P. 00000" in the fictional clinic's address counted as a fabricated page. The pattern is stricter now.</span></li>
+      <li><b>The assistant pads answers</b><span>Many answers add a plausible detail the passages do not state. Mostly harmless, sometimes wrong. A stricter grounding instruction is the next experiment.</span></li>
+      <li><b>One real quality gap remains</b><span>Asked whether the clinic can issue an IMSS disability note, the assistant answers from the IMSS procedure instead of saying plainly that the clinic is private and does not serve IMSS patients.</span></li>
+    </ul>
+  </section>
+
+  <section id="method">
+    <h2>Method and limits</h2>
+    <div class="ev-grid">
+      <div class="ev-card"><h3>How relevance was judged</h3><ul class="ev-plain"><li>A passage is relevant if it comes from the right document and contains every required phrase, ignoring accents and case.</li><li>The dataset is checked against the index before every run, so a question without a relevant passage fails loudly.</li><li>Out-of-scope questions are unrelated (a recipe, a passport). Near misses are on topic, with the answer verified absent by search.</li></ul></div>
+      <div class="ev-card"><h3>Limits</h3><ul class="ev-plain"><li>The questions are few and were written after reading the documents, so lexical overlap is probably higher than for real users.</li><li>Phrase-based judging undercounts valid alternative passages, which penalises BM25 most.</li><li>One sample per question and one judge. Differences of a question or two are noise.</li><li>Fictional clinic data only; no patient data was used.</li></ul></div>
+      <div class="ev-card"><h3>Reproduce</h3><pre><code>npm run ingest
+npm run eval
+npm run eval:generation
+npm run dashboard:data</code></pre><p class="ev-cap">Retrieval evals call the embedding and rerank APIs. Generation evals spend language-model credits on both the assistant and the judge.</p></div>
+    </div>
+  </section>
+
+  <div class="ev-tip" hidden role="status"></div>
+</div>
+
+<script>
+(() => {
+  const root = document.querySelector('.ev');
+  const tip = root.querySelector('.ev-tip');
+  const fmt = { pct: d3.format('.0%'), mrr: d3.format('.3f'), int: d3.format(','), ms: v => v + ' ms', score: d3.format('.2f'), raw: v => String(v ?? '') };
+  const $ = (s, el = root) => el.querySelector(s);
+  const MUTED = 'var(--cds-chart-muted)';
+  const state = { retTag: 'all', exGroup: 'all', exQuery: '', exSel: null };
+
+  // ---------- computed source ----------
+  dash.calc('question_mix', {
+    title: 'Questions by group',
+    description: 'Counts the rows of the per-question results in each group.',
+    inputs: ['question_results'],
+    fn: (question_results) => ['answerable', 'out_of_scope', 'near_miss'].map(group => ({ group, count: question_results.filter(r => r.group === group).length })),
+  });
+
+  // ---------- helpers ----------
+  const ok = id => dash.data(id).status === 'ok';
+  const rowsOf = id => (ok(id) ? dash.data(id).data : []);
+  function statusLine(host, id) {
+    host.replaceChildren();
+    const s = dash.data(id).status;
+    const d = document.createElement('div');
+    d.className = 'ev-status';
+    if (s === 'loading') d.textContent = 'Loading';
+    else { const dot = document.createElement('i'); const t = document.createElement('span'); t.textContent = 'Failed to load'; d.append(dot, t); }
+    host.append(d);
+  }
+  function showTip(evt, title, lines) {
+    tip.replaceChildren();
+    const t = document.createElement('div'); t.className = 'ev-tt'; t.textContent = title; tip.append(t);
+    for (const l of lines) { const d = document.createElement('div'); d.textContent = l; tip.append(d); }
+    tip.hidden = false;
+    const box = root.getBoundingClientRect();
+    let x = evt.clientX - box.left + 14, y = evt.clientY - box.top + 14;
+    const w = tip.offsetWidth;
+    if (x + w > box.width - 8) x = Math.max(8, box.width - w - 8);
+    tip.style.left = x + 'px'; tip.style.top = y + 'px';
+  }
+  const hideTip = () => { tip.hidden = true; };
+  function measure(svg, labels) {
+    let w = 0;
+    for (const l of labels) { const t = svg.append('text').text(l); w = Math.max(w, t.node().getComputedTextLength()); t.remove(); }
+    return Math.ceil(w);
+  }
+  function parseWhere(w) {
+    const o = {};
+    for (const part of w.split('&')) { const i = part.indexOf('='); o[decodeURIComponent(part.slice(0, i))] = decodeURIComponent(part.slice(i + 1)); }
+    return o;
+  }
+  function fillMarks() {
+    root.querySelectorAll('[data-source][data-field][data-where]').forEach(el => {
+      const d = dash.data(el.dataset.source);
+      if (d.status !== 'ok') { el.textContent = '—'; return; }
+      const w = parseWhere(el.dataset.where);
+      const row = d.data.find(r => Object.entries(w).every(([k, v]) => String(r[k]) === v));
+      const val = row ? row[el.dataset.field] : null;
+      el.textContent = val === null || val === undefined ? '—' : (fmt[el.dataset.fmt] || fmt.raw)(val);
+    });
+  }
+  function fillTable(table, rows, cellFn) {
+    const cols = [...table.querySelectorAll('thead th')].map(th => ({ field: th.dataset.field, fmt: th.dataset.fmt, num: th.classList.contains('ev-num') }));
+    const body = table.tBodies[0];
+    body.replaceChildren();
+    for (const r of rows) {
+      const tr = body.insertRow();
+      tr.dataset.key = r[table.dataset.rowKey];
+      for (const c of cols) {
+        const td = tr.insertCell();
+        const v = r[c.field];
+        td.textContent = v === null || v === undefined ? '' : (fmt[c.fmt] || fmt.raw)(v);
+        if (c.num) td.classList.add('ev-num');
+        if (cellFn) cellFn(td, c, r);
+      }
+    }
+  }
+  function svgFor(host, H) {
+    const W = Math.max(300, host.clientWidth || 600);
+    const svg = d3.select(host).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    return { svg, W };
+  }
+  function bar(g, x, y, w, h, fill) { return g.append('rect').attr('x', x).attr('y', y).attr('width', Math.max(0, w)).attr('height', h).attr('rx', 3).attr('fill', fill); }
+
+  // ---------- corpus ----------
+  function drawCorpus() {
+    const host = $('#ev-corpus');
+    host.replaceChildren();
+    if (!ok('corpus')) return statusLine(host, 'corpus');
+    const rows = [...rowsOf('corpus')].sort((a, b) => b.chunks - a.chunks);
+    const rowH = 26, top = 4, bottom = 4;
+    const { svg, W } = svgFor(host, top + rows.length * rowH + bottom);
+    const left = measure(svg, rows.map(r => r.short)) + 12;
+    const x = d3.scaleLinear([0, d3.max(rows, r => r.chunks)], [left, W - 48]);
+    rows.forEach((r, i) => {
+      const y = top + i * rowH;
+      svg.append('text').attr('x', left - 8).attr('y', y + 15).attr('text-anchor', 'end').text(r.short);
+      bar(svg, left, y + 4, x(r.chunks) - left, 16, r.origin === 'fictional' ? dash.colors[2] : dash.colors[0]);
+      svg.append('text').attr('class', 'ev-val').attr('x', x(r.chunks) + 6).attr('y', y + 16).text(fmt.int(r.chunks));
+      svg.append('rect').attr('class', 'ev-hit').attr('x', 0).attr('y', y).attr('width', W).attr('height', rowH)
+        .on('mousemove', e => showTip(e, r.title, [`${r.category} · ${r.type}${r.pages ? ` · ${r.pages} pages` : ''}`, `${fmt.int(r.chunks)} chunks · ${r.origin} document`])).on('mouseleave', hideTip);
+    });
+  }
+
+  // ---------- retrieval ----------
+  function drawRetrieval() {
+    const host = $('#ev-retrieval');
+    host.replaceChildren();
+    if (!ok('retrieval_summary')) return statusLine(host, 'retrieval_summary');
+    const rows = rowsOf('retrieval_summary').filter(r => r.tag === state.retTag);
+    const rowH = 54, top = 26, bottom = 28, right = 84;
+    const { svg, W } = svgFor(host, top + rows.length * rowH + bottom);
+    const left = measure(svg, rows.map(r => r.label)) + 14;
+    const x = d3.scaleLinear([0, 1], [left, W - right - 40]);
+    for (const t of [0, 0.25, 0.5, 0.75, 1]) {
+      svg.append('line').attr('x1', x(t)).attr('x2', x(t)).attr('y1', top - 6).attr('y2', top + rows.length * rowH).attr('stroke', 'var(--cds-chart-grid)');
+      svg.append('text').attr('x', x(t)).attr('y', top + rows.length * rowH + 16).attr('text-anchor', t === 1 ? 'end' : t === 0 ? 'start' : 'middle').text(fmt.pct(t));
+    }
+    svg.append('text').attr('x', W - 4).attr('y', 12).attr('text-anchor', 'end').text('MRR@10');
+    const best = d3.max(rows, r => r.hit1);
+    rows.forEach((r, i) => {
+      const y = top + i * rowH;
+      svg.append('text').attr('x', left - 10).attr('y', y + rowH / 2 + 4).attr('text-anchor', 'end').attr('class', r.hit1 === best ? 'ev-val' : null).text(r.label);
+      bar(svg, left, y + 9, x(r.hit1) - left, 14, dash.colors[0]);
+      svg.append('text').attr('class', 'ev-val').attr('x', x(r.hit1) + 6).attr('y', y + 20).text(fmt.pct(r.hit1));
+      bar(svg, left, y + 28, x(r.hit5) - left, 14, MUTED);
+      svg.append('text').attr('x', x(r.hit5) + 6).attr('y', y + 39).text(fmt.pct(r.hit5));
+      svg.append('text').attr('class', 'ev-val').attr('x', W - 4).attr('y', y + rowH / 2 + 4).attr('text-anchor', 'end').text(fmt.mrr(r.mrr10));
+      svg.append('rect').attr('class', 'ev-hit').attr('x', 0).attr('y', y).attr('width', W).attr('height', rowH)
+        .on('mousemove', e => showTip(e, r.label, [`Hit@1 ${fmt.pct(r.hit1)} · Hit@3 ${fmt.pct(r.hit3)} · Hit@5 ${fmt.pct(r.hit5)}`, `MRR@10 ${fmt.mrr(r.mrr10)}`, `${r.n} questions · median latency ${r.p50_ms} ms`])).on('mouseleave', hideTip);
+    });
+    const t = $('#ev-ret-table');
+    if (ok('retrieval_summary')) fillTable(t, rows);
+  }
+  function drawSweep() {
+    if (ok('fusion_sweep')) fillTable($('#ev-sweep-table'), rowsOf('fusion_sweep'));
+    else $('#ev-sweep-table').tBodies[0].replaceChildren();
+  }
+
+  // ---------- cutoff ----------
+  const GROUPS = [
+    { key: 'answerable', label: 'Answerable', color: () => dash.colors[0] },
+    { key: 'out_of_scope', label: 'Out of scope', color: () => dash.colors[1] },
+    { key: 'near_miss', label: 'Near miss', color: () => dash.colors[2] },
+  ];
+  function drawScores() {
+    const host = $('#ev-scores');
+    host.replaceChildren();
+    const lg = $('#ev-score-legend'); lg.replaceChildren();
+    if (!ok('question_results')) return statusLine(host, 'question_results');
+    const rows = rowsOf('question_results');
+    const lane = 70, top = 22, bottom = 28;
+    const { svg, W } = svgFor(host, top + GROUPS.length * lane + bottom);
+    const left = measure(svg, GROUPS.map(g => g.label)) + 14;
+    const x = d3.scaleLinear([0, 1], [left, W - 16]);
+    for (const t of [0, 0.2, 0.4, 0.6, 0.8, 1]) {
+      svg.append('line').attr('x1', x(t)).attr('x2', x(t)).attr('y1', top).attr('y2', top + GROUPS.length * lane).attr('stroke', 'var(--cds-chart-grid)');
+      svg.append('text').attr('x', x(t)).attr('y', top + GROUPS.length * lane + 16).attr('text-anchor', t === 1 ? 'end' : t === 0 ? 'start' : 'middle').text(fmt.score(t));
+    }
+    GROUPS.forEach((g, gi) => {
+      const y0 = top + gi * lane;
+      svg.append('text').attr('x', left - 10).attr('y', y0 + lane / 2 + 4).attr('text-anchor', 'end').text(g.label);
+      const pts = rows.filter(r => r.group === g.key && r.top_score !== null && r.top_score !== undefined);
+      pts.forEach((r, i) => {
+        const cy = y0 + lane / 2 + (((i * 37) % 100) / 100 - 0.5) * (lane - 26);
+        svg.append('circle').attr('cx', x(r.top_score)).attr('cy', cy).attr('r', 5.5).attr('fill', g.color()).attr('fill-opacity', 0.8).attr('stroke', 'var(--color-bg)')
+          .on('mousemove', e => showTip(e, r.id, [r.question, `Best relevance score ${fmt.score(r.top_score)} (${r.top_score_source})`])).on('mouseleave', hideTip);
+      });
+      const li = document.createElement('span'); const sw = document.createElement('i'); sw.style.background = g.color(); li.append(sw, `${g.label} (${pts.length} scored)`); lg.append(li);
+    });
+    // cutoff line: a fixed reference chosen by the project, not a data value
+    svg.append('line').attr('x1', x(0.6)).attr('x2', x(0.6)).attr('y1', top - 4).attr('y2', top + GROUPS.length * lane).attr('stroke', 'var(--cds-chart-reference)').attr('stroke-width', 1.5).attr('stroke-dasharray', '5 4');
+    svg.append('text').attr('x', x(0.6) - 6).attr('y', 12).attr('text-anchor', 'end').text('cutoff 0.6: below this, "nothing relevant"');
+  }
+
+  // ---------- answers ----------
+  const RUN_COLORS = () => [MUTED, dash.colors[0], dash.colors[1]];
+  const LOWER_BETTER = new Set(['false_refusal', 'incorrect', 'partial', 'with_unsupported', 'fabricated_citation']);
+  function drawGen(hostId, group, metrics) {
+    const host = $(hostId);
+    host.replaceChildren();
+    if (!ok('generation_summary')) return statusLine(host, 'generation_summary');
+    const all = rowsOf('generation_summary');
+    const runs = [...new Map(all.map(r => [r.run, r])).values()];
+    const colors = RUN_COLORS();
+    const rows = all.filter(r => r.group === group);
+    const blockH = 24 + runs.length * 17 + 10;
+    const { svg, W } = svgFor(host, metrics.length * blockH + 4);
+    const x = d3.scaleLinear([0, 1], [0, W - 52]);
+    metrics.forEach((m, mi) => {
+      const y0 = mi * blockH;
+      const lab = rows.find(r => r.metric === m)?.label || m;
+      svg.append('text').attr('x', 0).attr('y', y0 + 14).attr('class', 'ev-val').text(lab + (LOWER_BETTER.has(m) ? ' (lower is better)' : ''));
+      runs.forEach((run, ri) => {
+        const r = rows.find(z => z.run === run.run && z.metric === m);
+        if (!r) return;
+        const y = y0 + 22 + ri * 17;
+        bar(svg, 0, y, x(r.value), 12, colors[ri % colors.length]);
+        svg.append('text').attr('class', 'ev-val').attr('x', x(r.value) + 6).attr('y', y + 10).text(fmt.pct(r.value));
+        svg.append('rect').attr('class', 'ev-hit').attr('x', 0).attr('y', y - 2).attr('width', W).attr('height', 16)
+          .on('mousemove', e => showTip(e, `${run.judge} judge · ${run.label}`, [`${lab}: ${fmt.pct(r.value)} of ${r.n} questions`, run.note])).on('mouseleave', hideTip);
+      });
+    });
+  }
+  function drawGenLegend() {
+    const lg = $('#ev-gen-legend'); lg.replaceChildren();
+    if (!ok('generation_summary')) return;
+    const runs = [...new Map(rowsOf('generation_summary').map(r => [r.run, r])).values()];
+    runs.forEach((run, i) => { const s = document.createElement('span'); const sw = document.createElement('i'); sw.style.background = RUN_COLORS()[i % 3]; s.append(sw, `${run.judge} judge, ${run.label.toLowerCase()}`); lg.append(s); });
+  }
+
+  // ---------- explorer ----------
+  const GROUP_LABEL = { answerable: 'Answerable', out_of_scope: 'Out of scope', near_miss: 'Near miss' };
+  function pillClass(v) { return v === 'correct' ? 'good' : v === 'partial' ? 'mid' : v === 'incorrect' || v === 'error' ? 'bad' : ''; }
+  function filteredQuestions() {
+    const q = state.exQuery.trim().toLowerCase();
+    return rowsOf('question_results').filter(r => (state.exGroup === 'all' || r.group === state.exGroup) && (!q || r.id.toLowerCase().includes(q) || r.question.toLowerCase().includes(q)));
+  }
+  function drawExplorer() {
+    const table = $('#ev-ex-table');
+    if (!ok('question_results')) { table.tBodies[0].replaceChildren(); return; }
+    const rows = filteredQuestions();
+    fillTable(table, rows, (td, c, r) => {
+      if (c.field === 'question') td.classList.add('ev-q');
+      if (c.field.startsWith('rank_')) {
+        td.classList.add('ev-rk');
+        if (r.group !== 'answerable') { td.textContent = ''; return; }
+        const v = r[c.field];
+        td.textContent = v === null ? '>10' : String(v);
+        td.classList.add(v === null ? 'rx' : v === 1 ? 'r1' : v <= 3 ? 'r3' : 'r10');
+      }
+      if (c.field === 'gen_verdict') {
+        const span = document.createElement('span');
+        span.className = 'ev-pill ' + (r.gen_verdict === 'correct' || r.gen_verdict === 'admits gap' ? 'good' : r.gen_verdict === 'partial' ? 'mid' : 'bad');
+        span.textContent = r.gen_verdict;
+        td.textContent = ''; td.append(span);
+      }
+    });
+    table.tBodies[0].querySelectorAll('tr').forEach(tr => {
+      tr.tabIndex = 0;
+      tr.setAttribute('aria-selected', tr.dataset.key === state.exSel ? 'true' : 'false');
+      const pick = () => { state.exSel = tr.dataset.key; drawExplorer(); };
+      tr.addEventListener('click', pick);
+      tr.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
+    });
+    $('#ev-ex-count').textContent = `${rows.length} of ${rowsOf('question_results').length} questions`;
+    if (!state.exSel && rows.length) state.exSel = rows[0].id;
+    drawDetail();
+  }
+  function kv(parent, label, value) {
+    const d = document.createElement('div'); const s = document.createElement('small'); s.textContent = label; const b = document.createElement('b'); b.textContent = value;
+    d.append(s, b); parent.append(d);
+  }
+  function heading(parent, text) { const e = document.createElement('div'); e.className = 'ev-eyebrow'; e.textContent = text; parent.append(e); }
+  function drawDetail() {
+    const host = $('#ev-detail');
+    host.replaceChildren();
+    if (!ok('question_results')) return statusLine(host, 'question_results');
+    const r = rowsOf('question_results').find(z => z.id === state.exSel);
+    if (!r) { const p = document.createElement('p'); p.className = 'ev-muted'; p.textContent = 'Select a question to see the assistant\'s answer.'; host.append(p); return; }
+    heading(host, `${r.id} · ${GROUP_LABEL[r.group] || r.group}${r.group === 'answerable' ? ` · ${r.tag}` : ''}`);
+    const h = document.createElement('h3'); h.textContent = r.question; host.append(h);
+    const facts = document.createElement('div'); facts.className = 'ev-kv';
+    if (r.expected_doc) kv(facts, 'Expected document', r.expected_doc);
+    if (r.group === 'answerable') {
+      [['Vector', 'rank_vector'], ['BM25', 'rank_bm25'], ['Hybrid', 'rank_hybrid'], ['Vector + rerank', 'rank_vector_rerank'], ['BM25 + rerank', 'rank_bm25_rerank'], ['Hybrid + rerank', 'rank_hybrid_rerank']]
+        .forEach(([l, f]) => kv(facts, `Rank, ${l}`, r[f] === null ? 'outside top 10' : String(r[f])));
+    }
+    kv(facts, 'Best relevance score', r.top_score === null ? 'below cutoff' : fmt.score(r.top_score));
+    kv(facts, 'Tool calls', r.gen_tool_calls === null ? '' : String(r.gen_tool_calls));
+    host.append(facts);
+    heading(host, 'The assistant\'s answer');
+    const a = document.createElement('div'); a.className = 'ev-answer'; a.textContent = r.gen_answer || '(no answer recorded)'; host.append(a);
+    heading(host, 'Passages the assistant retrieved');
+    if (r.gen_sources) { const ul = document.createElement('ul'); r.gen_sources.split('\n').forEach(s => { const li = document.createElement('li'); li.textContent = s; ul.append(li); }); host.append(ul); }
+    else { const p = document.createElement('p'); p.className = 'ev-muted'; p.textContent = 'None: the relevance cutoff reported that nothing relevant was found.'; host.append(p); }
+    heading(host, 'Judge\'s verdict');
+    const v = document.createElement('div'); v.className = 'ev-kv';
+    kv(v, 'Correctness', r.gen_correctness);
+    kv(v, 'Admits the information is missing', r.gen_admits_missing === null ? '' : r.gen_admits_missing ? 'yes' : 'no');
+    kv(v, 'Claims checked', String(r.gen_claims));
+    kv(v, 'Unsupported claims', String(r.gen_unsupported));
+    kv(v, 'Citation not retrieved', r.gen_fabricated || 'none');
+    host.append(v);
+    if (r.gen_reason) { const p = document.createElement('p'); p.className = 'ev-cap'; p.textContent = r.gen_reason; host.append(p); }
+    if (r.gen_unsupported_text) {
+      const ul = document.createElement('ul'); r.gen_unsupported_text.split(' | ').forEach(s => { const li = document.createElement('li'); li.textContent = s; ul.append(li); });
+      heading(host, 'Claims the passages do not support'); host.append(ul);
+    }
+  }
+
+  // ---------- controls ----------
+  $('#ev-ret-tags').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    state.retTag = b.dataset.tag;
+    $('#ev-ret-tags').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    drawRetrieval();
+  });
+  $('#ev-ex-groups').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    state.exGroup = b.dataset.group;
+    $('#ev-ex-groups').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    drawExplorer();
+  });
+  $('#ev-ex-search').addEventListener('input', e => { state.exQuery = e.target.value; drawExplorer(); });
+  root.querySelectorAll('.ev-nav a').forEach(a => a.addEventListener('click', e => {
+    e.preventDefault();
+    const el = document.getElementById(a.getAttribute('href').slice(1));
+    if (el) { el.scrollIntoView(); dash.setLink(el.id); }
+  }));
+  const lg1 = $('.ev-lg1'); if (lg1) lg1.style.background = dash.colors[0];
+
+  dash.onData(() => {
+    fillMarks();
+    drawCorpus();
+    drawRetrieval();
+    drawSweep();
+    drawScores();
+    drawGenLegend();
+    drawGen('#ev-gen-ans', 'answerable', ['correct', 'false_refusal', 'faithfulness', 'with_unsupported']);
+    drawGen('#ev-gen-unans', 'unanswerable', ['handled', 'handled_out_of_scope', 'handled_near_miss', 'admits_missing', 'with_unsupported']);
+    drawExplorer();
+  });
+})();
+</script>

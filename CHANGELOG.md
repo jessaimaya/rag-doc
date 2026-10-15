@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-10-15 — Eval dashboard
+
+- `npm run dashboard:data` builds five datasets (corpus, retrieval metrics, fusion sweep, answer-quality metrics, per-question results) from the saved eval results into `evals/dashboard-data/`; `evals/dashboard/index.html` is the dashboard page that reads them.
+- Documented that the relevance cutoff does not separate near-miss questions from real answers.
+
 ## 2026-10-15 — Generation evals and a relevance cutoff
 
 - `npm run eval:generation`: runs questions through the real agent and has an LLM judge score correctness, claim-level faithfulness and refusals; checks fabricated page/URL citations without an LLM. Judge defaults to Haiku to keep runs cheap.

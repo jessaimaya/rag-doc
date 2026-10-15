@@ -1,0 +1,74 @@
+[
+ {
+  "row_id": "hybrid_1to1",
+  "label": "Hybrid, vector:BM25 1:1",
+  "reranked": false,
+  "hit1": 0.62,
+  "hit3": 0.78,
+  "hit5": 0.86,
+  "mrr10": 0.726
+ },
+ {
+  "row_id": "hybrid_rerank_1to1",
+  "label": "Hybrid, vector:BM25 1:1, reranked",
+  "reranked": true,
+  "hit1": 0.86,
+  "hit3": 0.98,
+  "hit5": 1,
+  "mrr10": 0.921
+ },
+ {
+  "row_id": "hybrid_2to1",
+  "label": "Hybrid, vector:BM25 2:1",
+  "reranked": false,
+  "hit1": 0.64,
+  "hit3": 0.82,
+  "hit5": 0.84,
+  "mrr10": 0.743
+ },
+ {
+  "row_id": "hybrid_rerank_2to1",
+  "label": "Hybrid, vector:BM25 2:1, reranked",
+  "reranked": true,
+  "hit1": 0.86,
+  "hit3": 0.98,
+  "hit5": 1,
+  "mrr10": 0.921
+ },
+ {
+  "row_id": "hybrid_3to1",
+  "label": "Hybrid, vector:BM25 3:1",
+  "reranked": false,
+  "hit1": 0.66,
+  "hit3": 0.82,
+  "hit5": 0.84,
+  "mrr10": 0.76
+ },
+ {
+  "row_id": "hybrid_rerank_3to1",
+  "label": "Hybrid, vector:BM25 3:1, reranked",
+  "reranked": true,
+  "hit1": 0.88,
+  "hit3": 0.98,
+  "hit5": 1,
+  "mrr10": 0.931
+ },
+ {
+  "row_id": "vector",
+  "label": "Vector only",
+  "reranked": false,
+  "hit1": 0.76,
+  "hit3": 0.9,
+  "hit5": 0.92,
+  "mrr10": 0.837
+ },
+ {
+  "row_id": "vector_rerank",
+  "label": "Vector only, reranked",
+  "reranked": true,
+  "hit1": 0.86,
+  "hit3": 0.98,
+  "hit5": 1,
+  "mrr10": 0.921
+ }
+]

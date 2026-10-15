@@ -1,0 +1,82 @@
+[
+ {
+  "doc_id": "imss-incapacidad-9220-003-329-pdf",
+  "short": "IMSS procedure",
+  "title": "IMSS procedure 9220-003-329 (temporary work disability)",
+  "category": "IMSS",
+  "type": "PDF",
+  "pages": 51,
+  "chunks": 102,
+  "origin": "public"
+ },
+ {
+  "doc_id": "issste-reglamento-servicios-medicos-pdf",
+  "short": "ISSSTE regulation",
+  "title": "ISSSTE medical services regulation",
+  "category": "ISSSTE",
+  "type": "PDF",
+  "pages": 19,
+  "chunks": 164,
+  "origin": "public"
+ },
+ {
+  "doc_id": "metlife-condiciones-gmm-colectivo-pdf",
+  "short": "MetLife terms",
+  "title": "MetLife group major medical expenses terms",
+  "category": "Private insurer",
+  "type": "PDF",
+  "pages": 33,
+  "chunks": 164,
+  "origin": "public"
+ },
+ {
+  "doc_id": "conamed-decalogos-derechos-pdf",
+  "short": "CONAMED rights",
+  "title": "CONAMED patient rights and duties",
+  "category": "Patient rights",
+  "type": "PDF",
+  "pages": 62,
+  "chunks": 59,
+  "origin": "public"
+ },
+ {
+  "doc_id": "clinica-valle-verde-faq-md",
+  "short": "Clinic FAQ (fictional)",
+  "title": "Valle Verde clinic FAQ (fictional)",
+  "category": "Clinic FAQ",
+  "type": "Markdown",
+  "pages": 0,
+  "chunks": 26,
+  "origin": "fictional"
+ },
+ {
+  "doc_id": "guia-tramite-programacion-de-cirugia-pdf",
+  "short": "GNP surgery guide",
+  "title": "GNP surgery scheduling guide",
+  "category": "Hospital procedures",
+  "type": "PDF",
+  "pages": 10,
+  "chunks": 7,
+  "origin": "public"
+ },
+ {
+  "doc_id": "sura-aviso-accidente-enfermedad-pdf",
+  "short": "SURA notice",
+  "title": "SURA accident or illness notice",
+  "category": "Private insurer",
+  "type": "PDF",
+  "pages": 2,
+  "chunks": 5,
+  "origin": "public"
+ },
+ {
+  "doc_id": "gnp-aviso-accidente-pdf",
+  "short": "GNP notice",
+  "title": "GNP accident or illness notice",
+  "category": "Private insurer",
+  "type": "PDF",
+  "pages": 2,
+  "chunks": 4,
+  "origin": "public"
+ }
+]

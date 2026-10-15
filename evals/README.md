@@ -1,5 +1,9 @@
 # Retrieval evals
 
+> A browsable version of all of this, with every question and answer, is the eval dashboard. Its datasets are built
+> by `npm run dashboard:data` into `evals/dashboard-data/`, and its page source is `evals/dashboard/index.html`
+> (written for the Claude Dashboard artifact type, so it expects its `dash` runtime and is not a standalone page).
+
 `npm run eval` measures how often the right passage is retrieved, for six configurations: each retriever alone
 (vector, BM25) and fused with Reciprocal Rank Fusion (hybrid), each with and without the Voyage reranker.
 Latest numbers: [`results/latest.md`](results/latest.md).
@@ -99,6 +103,12 @@ see page/URL metadata, and the output file was later overwritten, so these numbe
 | unanswerable: answers with an unsupported claim | 31% | 8% |
 
 The cutoff removed most invented answers on unanswerable questions at no measurable cost on answerable ones.
+
+**Caveat found while building the dashboard:** the cutoff separates *unrelated* questions cleanly (best score at most
+0.51, against at least 0.695 for answerable ones) but not *near misses*. Five of the six near-miss questions still
+scored 0.605 to 0.844, inside the range of real answers, so only one of them was cut off. For near misses the
+assistant relies on its instructions to admit the gap, and the generation eval checks that it does. Part of the
+near-miss improvement in the A/B table above is therefore sampling noise (one question is 17 points of that column).
 
 ## Latest run (`results/generation.md`): Haiku judge, cutoff 0.6, one pass
 
