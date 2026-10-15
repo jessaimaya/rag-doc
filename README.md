@@ -7,9 +7,11 @@ A Spanish-language RAG assistant that helps patients with medical insurance pape
 
 ## What it does today
 
-- Chat web UI (Next.js) that talks to a Mastra agent.
+- Chat web UI (Next.js, light and dark themes) that talks to a Mastra agent and renders its Markdown answers. See [frontend/README.md](frontend/README.md).
 - The agent searches a knowledge base with **hybrid retrieval**: pgvector similarity (Voyage `voyage-3`) and BM25, merged with Reciprocal Rank Fusion and reranked with Voyage `rerank-2.5`. It answers in Spanish with steps, requirements and citations (document, section, page, source URL).
 - Documents are described in `documents/manifest.json` and can be PDF, DOCX, HTML, Markdown or TXT, local or remote. Ingestion uses structure-aware + semantic chunking. See [KNOWLEDGE_BASE_SETUP.md](KNOWLEDGE_BASE_SETUP.md).
+- A relevance cutoff: when nothing retrieved is relevant enough, the assistant says so instead of improvising, and its instructions tell it to state only what the retrieved passages say.
+- Retrieval and answer-quality evals with a browsable dashboard ([evals/README.md](evals/README.md), `evals/dashboard/standalone.html`).
 - API key protection on the backend (fail-closed, constant-time comparison) and per-IP rate limiting on backend and chat route.
 
 ## Stack
@@ -75,14 +77,30 @@ The knowledge base is built only from public documents plus one fictional clinic
 
 ## Roadmap
 
-- Validated config at startup (one `config.ts`; ingestion is already a single path).
-- A larger public corpus.
-- ~~Retrieval evals~~ done: hit rate and MRR for vector, BM25, hybrid and reranked search, see [evals/README.md](evals/README.md). Generation evals (`npm run eval:generation`: correctness, faithfulness, refusals) and a rerank-score cutoff ("no relevant documents") are in too. Still to do: a stricter grounding prompt, a larger question set from real users, and a stronger judge for headline numbers.
+Done:
+
+- Single ingestion path driven by `documents/manifest.json` (PDF, DOCX, HTML, Markdown, TXT), with structure-aware + semantic chunking.
+- Hybrid retrieval (vector + BM25, rank fusion) with a reranker, a relevance cutoff, and citations.
+- Retrieval evals (hit rate, MRR for six setups) and generation evals (correctness, faithfulness, refusals), a stricter grounding prompt measured on all 63 questions, and an eval dashboard.
+- Chat UI redesign: rendered Markdown, document-matched starter questions, error and retry states.
+
+Next, in the order I would do them:
+
+1. **Source cards in the chat**: show each answer's passages (document, section, page, link, relevance) as checkable cards. The backend already returns this data.
+2. **Streaming answers**, so long answers appear as they are written.
+3. **Stronger evals**: a larger question set that includes real users' questions, and a Sonnet-judged run of the final prompt so the headline numbers do not depend on the cheap judge.
+4. **Validated config at startup** (one `config.ts` for the backend and the RAG module).
+5. **A larger public corpus**, and OCR for scanned PDFs. Move BM25 into Postgres if the corpus grows past tens of thousands of chunks.
+6. **Public demo** deployed with the fictional clinic: run `check-db` and `ingest` against the deployed database, then record the demo.
+
+Later:
+
 - Appointment booking tools with guardrails.
 - WhatsApp channel and conversation memory.
-- Public demo with a fictional clinic.
+
+Known quality gaps: the assistant occasionally adds details the passages do not state (reduced, not eliminated, by the grounding prompt), and near-miss questions (on topic, answer absent) cannot be rejected by the relevance cutoff, so they rely on the assistant's instructions.
 
 ## Limitations
 
-- Retrieval evals exist, but there are no generation evals yet. Scanned PDFs (no text layer) are not supported. BM25 is in memory, which is fine for thousands of chunks, not millions.
+- The evals are small (63 hand-written questions), use one sample per question, and some runs use a cheap judge, so treat the numbers as a regression check, not a benchmark. Scanned PDFs (no text layer) are not supported. BM25 is in memory, which is fine for thousands of chunks, not millions.
 - Not a medical product and not a production system. It must not be used for clinical decisions.
