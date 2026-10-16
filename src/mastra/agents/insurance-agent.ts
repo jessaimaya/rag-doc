@@ -48,18 +48,18 @@ Siempre incluye las secciones:
 
 ## FORMATO DE RESPUESTA
 
-#### 🩺 Resumen
+#### Resumen
 [Breve descripción del trámite]
 
-#### 📋 Pasos
+#### Pasos
 1. [Paso 1]
 2. [Paso 2]
 3. [Paso 3]
 
-#### 📑 Requisitos
+#### Requisitos
 - [Lista de documentos necesarios]
 
-#### 🔗 Fuentes
+#### Fuentes
 - [Título del documento, sección, p. N — URL si la herramienta la devuelve]
 
 ## USO DE LA HERRAMIENTA Y CITAS

@@ -115,7 +115,7 @@ async function main() {
   const { runnable: all } = loadEvalQuestions();
   const questions = only ? all.filter(q => only.includes(q.id)) : all;
   const chunks = await loadAllChunks();
-  console.log(`🧪 ${questions.length} questions × ${cutoffs.length} pass(es), judge ${process.env.EVAL_JUDGE_MODEL || 'claude-haiku-5-5'}`);
+  console.log(`${questions.length} questions × ${cutoffs.length} pass(es), judge ${process.env.EVAL_JUDGE_MODEL || 'claude-haiku-5-5'}`);
 
   const passes: { cutoff: number; rows: Row[]; summary: GenerationSummary }[] = [];
   for (const cutoff of cutoffs) {
@@ -177,7 +177,7 @@ async function main() {
 
 main()
   .catch(err => {
-    console.error('❌', err instanceof Error ? err.message : err);
+    console.error('Error:', err instanceof Error ? err.message : err);
     process.exitCode = 1;
   })
   .finally(closePool);

@@ -20,7 +20,7 @@ async function main() {
     category: option('category'),
     rerank: !args.includes('--no-rerank'),
   });
-  console.log(`\n🔎 ${query}\n`);
+  console.log(`\n${query}\n`);
   results.forEach((r, i) => {
     const d = r.debug;
     console.log(`#${i + 1}  ${r.chunk.title}${r.chunk.page ? ` · p.${r.chunk.page}` : ''}${r.chunk.section ? ` · ${r.chunk.section}` : ''}`);
@@ -32,7 +32,7 @@ async function main() {
 
 main()
   .catch(err => {
-    console.error('❌', err instanceof Error ? err.message : err);
+    console.error('Error:', err instanceof Error ? err.message : err);
     process.exitCode = 1;
   })
   .finally(closePool);

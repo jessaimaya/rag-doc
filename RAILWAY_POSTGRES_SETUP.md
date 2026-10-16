@@ -4,15 +4,15 @@ This guide walks you through setting up PostgreSQL with pgvector on Railway.
 
 ## Benefits of Railway PostgreSQL
 
-✅ **No IPv6 issues** - Everything runs in Railway's internal network
-✅ **Lower latency** - Database and app in same infrastructure
-✅ **Simpler setup** - No external connection configuration needed
+**No IPv6 issues** - Everything runs in Railway's internal network
+**Lower latency** - Database and app in same infrastructure
+**Simpler setup** - No external connection configuration needed
 
 ## Step-by-Step Setup
 
 ### 1. Deploy pgvector Template in Railway
 
-⚠️ **Important:** Railway's standard PostgreSQL doesn't include pgvector. You must use a pre-configured template.
+**Important:** Railway's standard PostgreSQL doesn't include pgvector. You must use a pre-configured template.
 
 **Option A: Deploy pgvector Template (Recommended)**
 
@@ -174,4 +174,4 @@ Once everything is working:
 
 4. Update your documentation to reflect Railway PostgreSQL setup
 
-🎉 Your application should now work smoothly without IPv6 issues!
+Your application should now work smoothly without IPv6 issues!

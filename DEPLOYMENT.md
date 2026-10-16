@@ -14,10 +14,10 @@ This guide will help you deploy your Medical Insurance Assistant to Railway.
 ## Why Railway?
 
 ### Railway Benefits:
-- ✅ **Easy Deployment**: Deploy directly from GitHub
-- ✅ **Environment Variables**: Secure configuration management
-- ✅ **Auto-scaling**: Handles traffic automatically
-- ✅ **Free Credits**: $5/month free credits (enough for testing)
+- **Easy Deployment**: Deploy directly from GitHub
+- **Environment Variables**: Secure configuration management
+- **Auto-scaling**: Handles traffic automatically
+- **Free Credits**: $5/month free credits (enough for testing)
 
 ### Pricing:
 - **Free**: $5 credit per month (≈500 hours of small instance)
@@ -29,11 +29,11 @@ This guide will help you deploy your Medical Insurance Assistant to Railway.
 ### 1. Prepare Your Repository
 
 Ensure these files are committed to your GitHub repository:
-- ✅ `Dockerfile` (created)
-- ✅ `railway.json` (created)
-- ✅ `.dockerignore` (created)
-- ✅ `package.json`
-- ✅ All source code
+- `Dockerfile` (created)
+- `railway.json` (created)
+- `.dockerignore` (created)
+- `package.json`
+- All source code
 
 ### 2. Push to GitHub
 
@@ -109,35 +109,35 @@ If you want to explore other options:
 ### Render.com
 - **Pros**: Free tier available, simple deployment
 - **Cons**: Free tier sleeps after inactivity
-- **IPv6**: ✅ Supported
+- **IPv6**: Supported
 - **Cost**: Free tier + $7/month for always-on
 
 ### Fly.io
 - **Pros**: Free tier, global edge deployment, IPv6 support
 - **Cons**: More complex configuration
-- **IPv6**: ✅ Supported
+- **IPv6**: Supported
 - **Cost**: Free tier (limited resources)
 
 ### Vercel
 - **Pros**: Excellent for Next.js/frontend, free tier
 - **Cons**: Serverless (not ideal for long-running agents)
-- **IPv6**: ✅ Supported
+- **IPv6**: Supported
 - **Cost**: Free tier available
 
 ### Railway (Recommended)
 - **Pros**: Easy setup, great DX, IPv6, Docker support
 - **Cons**: No completely free tier
-- **IPv6**: ✅ Supported
+- **IPv6**: Supported
 - **Cost**: $5 free credits/month
 
 ## Platform Comparison
 
 | Platform | Free Tier | IPv6 | Ease | Docker | Best For |
 |----------|-----------|------|------|--------|----------|
-| Railway  | $5 credit | ✅   | ⭐⭐⭐ | ✅     | Production |
-| Render   | Yes*      | ✅   | ⭐⭐⭐ | ✅     | Side projects |
-| Fly.io   | Limited   | ✅   | ⭐⭐   | ✅     | Global apps |
-| Vercel   | Yes       | ✅   | ⭐⭐⭐ | ❌     | Frontends |
+| Railway  | $5 credit | Yes  | High   | Yes    | Production |
+| Render   | Yes*      | Yes  | High   | Yes    | Side projects |
+| Fly.io   | Limited   | Yes  | Medium | Yes    | Global apps |
+| Vercel   | Yes       | Yes  | High   | No     | Frontends |
 
 *Free tier sleeps after 15 min inactivity
 
@@ -160,7 +160,7 @@ Railway provides:
 ## Troubleshooting
 
 ### Connection to Postgres fails
-- ✅ Railway has IPv6, so this should work
+- Railway has IPv6, so this should work
 - Check environment variables are set correctly
 - Verify DATABASE_URL string is correct
 

@@ -65,14 +65,14 @@ async function main() {
   const inScope = questions.filter(q => !isUnanswerable(q));
   const outScope = questions.filter(isUnanswerable);
   const broken = inScope.filter(q => !chunks.some(c => isRelevant(q, c)));
-  console.log(`📋 ${questions.length} questions (${inScope.length} answerable, ${outScope.length} unanswerable), ${chunks.length} chunks indexed`);
+  console.log(`${questions.length} questions (${inScope.length} answerable, ${outScope.length} unanswerable), ${chunks.length} chunks indexed`);
   for (const q of inScope) {
     const n = chunks.filter(c => isRelevant(q, c)).length;
-    if (n === 0) console.error(`   ❌ ${q.id}: no chunk matches its judgments`);
-    else if (n > 8) console.warn(`   ⚠️  ${q.id}: ${n} chunks match, the judgment may be too loose`);
+    if (n === 0) console.error(`   ERROR ${q.id}: no chunk matches its judgments`);
+    else if (n > 8) console.warn(`   WARN ${q.id}: ${n} chunks match, the judgment may be too loose`);
   }
   if (broken.length) throw new Error(`${broken.length} question(s) have no relevant chunk; fix evals/questions.json`);
-  if (checkOnly) return console.log('✅ dataset is consistent with the index');
+  if (checkOnly) return console.log('dataset is consistent with the index');
 
   const configs = onlyArg ? ALL_CONFIGS.filter(c => onlyArg.split(',').includes(c.name)) : ALL_CONFIGS;
   const embeddings = await embed(questions.map(q => q.question), 'query');
@@ -154,7 +154,7 @@ async function main() {
 
 main()
   .catch(err => {
-    console.error('❌', err instanceof Error ? err.message : err);
+    console.error('Error:', err instanceof Error ? err.message : err);
     process.exitCode = 1;
   })
   .finally(closePool);

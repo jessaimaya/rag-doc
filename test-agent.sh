@@ -3,8 +3,8 @@
 # Test script for Medical Insurance Assistant API
 URL="${API_URL:-http://localhost:4111}/api/agents/insuranceAgent/generate"
 
-echo "🧪 Testing Medical Insurance Assistant..."
-echo "📍 URL: $URL"
+echo "Testing Medical Insurance Assistant..."
+echo "URL: $URL"
 echo ""
 
 # Test question in Spanish
@@ -21,4 +21,4 @@ curl -X POST "$URL" \
   }' | jq '.'
 
 echo ""
-echo "✅ Test completed!"
+echo "Test completed!"

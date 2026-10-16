@@ -24,7 +24,7 @@ export function loadEvalQuestions(): { runnable: EvalQuestion[]; skipped: EvalQu
   const manifest = fs.existsSync(manifestPath) ? JSON.parse(fs.readFileSync(manifestPath, 'utf8')) : [];
   const split = splitByCorpus(questions, skippedDocIds(manifest));
   if (split.skipped.length) {
-    console.log(`⏭️  Skipping ${split.skipped.length} question(s) whose documents are not in the public corpus: ${split.skipped.map(q => q.id).join(', ')}`);
+    console.log(`Skipping ${split.skipped.length} question(s) whose documents are not in the public corpus: ${split.skipped.map(q => q.id).join(', ')}`);
   }
   return split;
 }

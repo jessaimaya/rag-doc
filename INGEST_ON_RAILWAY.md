@@ -2,7 +2,7 @@
 
 Since your local machine doesn't have IPv6, you can't connect to the remote Postgres locally. You need to run ingestion **on Railway** where IPv6 works.
 
-## Method 1: One-Off Command (Easiest) ⭐
+## Method 1: One-Off Command (Easiest)
 
 ### Step 1: Upload PDFs to a Public URL
 Upload your PDF to:
@@ -95,10 +95,10 @@ railway shell
 **For Production**: Use Method 1 (One-Off Command with URL)
 
 **Why?**
-- ✅ Simplest
-- ✅ No local IPv6 needed
-- ✅ Runs on Railway infrastructure
-- ✅ Works with public PDFs
+- Simplest
+- No local IPv6 needed
+- Runs on Railway infrastructure
+- Works with public PDFs
 
 ## Example: Ingest from Google Drive
 
@@ -128,9 +128,9 @@ railway shell
 ## Troubleshooting
 
 ### "railway run" gives IPv6 error
-- ❌ Don't use `railway run` (runs locally)
-- ✅ Use Railway dashboard "One-off Commands" (runs on Railway)
-- ✅ Or use `railway shell` then commands inside
+- Don't use `railway run` (runs locally)
+- Use Railway dashboard "One-off Commands" (runs on Railway)
+- Or use `railway shell` then commands inside
 
 ### Can't access Railway shell
 ```bash
@@ -161,4 +161,4 @@ railway shell
 
 5. **Test your agent!**
 
-Your documents will be in Postgres and accessible from Railway! 🎉
+Your documents will be in Postgres and accessible from Railway!

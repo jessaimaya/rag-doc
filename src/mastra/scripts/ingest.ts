@@ -100,23 +100,23 @@ async function main() {
         unlisted: [],
       }
     : resolveDocuments(dir);
-  if (unlisted.length) console.warn(`⚠️  Not in manifest.json, ingested with defaults: ${unlisted.join(', ')}`);
+  if (unlisted.length) console.warn(`Warning: not in manifest.json, ingested with defaults: ${unlisted.join(', ')}`);
   const specs = only ? all.filter(s => s.docId.includes(only) || s.title.toLowerCase().includes(only)) : all;
   if (specs.length === 0) throw new Error(only ? `No document matches "${only}"` : `No documents found in ${dir}`);
 
   if (!dryRun) await ensureSchema();
-  console.log(`📚 ${specs.length} document(s) from ${dir}${dryRun ? ' (dry run)' : ''}${semantic ? '' : ' (structure-only chunking)'}\n`);
+  console.log(`${specs.length} document(s) from ${dir}${dryRun ? ' (dry run)' : ''}${semantic ? '' : ' (structure-only chunking)'}\n`);
 
   const failed: string[] = [];
   for (const spec of specs) {
-    console.log(`📄 ${spec.docId}`);
+    console.log(`${spec.docId}`);
     try {
       const outcome = await ingest(spec);
       if (outcome === 'unchanged') console.log('   ↺ unchanged, skipped (use --force to redo)');
-      else if (outcome === 'ingested') console.log('   ✅ stored');
+      else if (outcome === 'ingested') console.log('   stored');
     } catch (err) {
       failed.push(spec.docId);
-      console.error(`   ❌ ${err instanceof Error ? err.message : err}`);
+      console.error(`   Failed: ${err instanceof Error ? err.message : err}`);
     }
   }
 
@@ -125,7 +125,7 @@ async function main() {
     for (const doc of await listDocuments()) {
       if (!keep.has(doc.doc_id)) {
         await deleteDocument(doc.doc_id);
-        console.log(`🗑️  pruned ${doc.doc_id}`);
+        console.log(`pruned ${doc.doc_id}`);
       }
     }
   }
@@ -135,7 +135,7 @@ async function main() {
     for (const d of await listDocuments()) console.log(`  ${String(d.chunk_count).padStart(4)} chunks  ${d.doc_id}  [${d.category}]`);
   }
   if (failed.length) {
-    console.error(`\n❌ ${failed.length} failed: ${failed.join(', ')}`);
+    console.error(`\n${failed.length} failed: ${failed.join(', ')}`);
     process.exitCode = 1;
   }
 }
