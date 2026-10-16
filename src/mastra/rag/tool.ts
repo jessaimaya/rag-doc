@@ -14,6 +14,59 @@ export function minRelevance(): number {
   return Number.isFinite(value) ? value : DEFAULT_MIN_RELEVANCE;
 }
 
+type Search = typeof hybridSearch;
+
+/**
+ * What the tool returns when retrieval itself fails (database down, embedding provider error). A thrown error would make the
+ * agent retry the search until it runs out of steps and return no text, so the failure is reported as a result instead.
+ */
+export const RETRIEVAL_UNAVAILABLE = {
+  results: [],
+  note: 'retrieval_unavailable',
+  message:
+    'El buscador de documentos tiene un problema técnico y no se puede consultar ahora. No repitas la búsqueda. Dile al usuario que no puedes consultar los documentos en este momento y que lo intente de nuevo en unos minutos. No respondas con conocimiento propio.',
+};
+
+/** Connection failures arrive as an AggregateError with an empty message; the useful part is the code of the first cause (ECONNREFUSED...). */
+function describeError(err: unknown): string {
+  if (!(err instanceof Error)) return String(err);
+  const cause = err instanceof AggregateError ? err.errors[0] : undefined;
+  const code = (cause as { code?: string } | undefined)?.code ?? (err as { code?: string }).code;
+  return [err.name, code, err.message].filter(Boolean).join(' ');
+}
+
+export async function runRagSearch(query: string, category?: string, search: Search = hybridSearch) {
+  let results: Awaited<ReturnType<Search>>;
+  try {
+    results = await search(query, { topK: 5, category });
+  } catch (err) {
+    // Log the cause server-side only; the model and the user get the generic message.
+    console.error('Retrieval failed:', describeError(err));
+    return RETRIEVAL_UNAVAILABLE;
+  }
+  const best = results[0]?.score ?? 0;
+  if (best < minRelevance()) {
+    return {
+      results: [],
+      note: 'no_relevant_documents',
+      message: 'La base de conocimiento no contiene información relevante para esta pregunta. No inventes la respuesta.',
+    };
+  }
+  return {
+    results: results.map((r, i) => ({
+      n: i + 1,
+      title: r.chunk.title,
+      category: r.chunk.category,
+      // Absent fields are omitted rather than null: a model asked to cite "page: null" tends to invent one.
+      ...(r.chunk.section ? { section: r.chunk.section } : {}),
+      ...(r.chunk.page ? { page: r.chunk.page } : {}),
+      ...(r.chunk.sourceUrl ? { sourceUrl: r.chunk.sourceUrl } : {}),
+      relevance: Number(r.score.toFixed(3)),
+      text: r.chunk.text,
+    })),
+  };
+}
+
 export const insuranceRAGTool = createTool({
   id: 'insuranceRAGTool',
   description:
@@ -22,28 +75,5 @@ export const insuranceRAGTool = createTool({
     query: z.string().describe('Pregunta o términos de búsqueda en español'),
     category: z.string().optional().describe('Filtro opcional por categoría, p. ej. "IMSS" o "ISSSTE"'),
   }),
-  execute: async ({ context }) => {
-    const results = await hybridSearch(context.query, { topK: 5, category: context.category });
-    const best = results[0]?.score ?? 0;
-    if (best < minRelevance()) {
-      return {
-        results: [],
-        note: 'no_relevant_documents',
-        message: 'La base de conocimiento no contiene información relevante para esta pregunta. No inventes la respuesta.',
-      };
-    }
-    return {
-      results: results.map((r, i) => ({
-        n: i + 1,
-        title: r.chunk.title,
-        category: r.chunk.category,
-        // Absent fields are omitted rather than null: a model asked to cite "page: null" tends to invent one.
-        ...(r.chunk.section ? { section: r.chunk.section } : {}),
-        ...(r.chunk.page ? { page: r.chunk.page } : {}),
-        ...(r.chunk.sourceUrl ? { sourceUrl: r.chunk.sourceUrl } : {}),
-        relevance: Number(r.score.toFixed(3)),
-        text: r.chunk.text,
-      })),
-    };
-  },
+  execute: async ({ context }) => runRagSearch(context.query, context.category),
 });

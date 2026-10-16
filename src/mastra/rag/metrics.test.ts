@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { RETRIEVAL_UNAVAILABLE, runRagSearch } from './tool';
 import { skippedDocIds, splitByCorpus } from './eval-scope';
 import { auroc, bestThreshold, firstRelevantRank, isRelevant, median, normalize, summarizeRanks, type EvalQuestion } from './metrics';
 
@@ -109,4 +110,26 @@ test('questions that rely on a skipped document are left out, unanswerable ones 
   const split = splitByCorpus([question, guide, none], skipped);
   assert.deepEqual(split.runnable.map(q => q.id), ['q', 'none']);
   assert.deepEqual(split.skipped.map(q => q.id), ['guide']);
+});
+
+test('a failing search becomes a "retrieval_unavailable" result instead of an exception', async () => {
+  const original = console.error;
+  console.error = () => {};
+  try {
+    const out = await runRagSearch('horario', undefined, async () => {
+      throw new Error('connect ECONNREFUSED 127.0.0.1:5433');
+    });
+    assert.equal(out, RETRIEVAL_UNAVAILABLE);
+    assert.equal(out.note, 'retrieval_unavailable');
+    assert.match(out.message, /No repitas la búsqueda/);
+  } finally {
+    console.error = original;
+  }
+});
+
+test('a weak best match is reported as "no_relevant_documents"', async () => {
+  const weak = [{ chunk: { title: 't', category: 'c', text: 'x' }, score: 0.1 }] as unknown as Awaited<ReturnType<typeof import('./retriever').hybridSearch>>;
+  const out = await runRagSearch('algo', undefined, async () => weak);
+  assert.equal(out.note, 'no_relevant_documents');
+  assert.deepEqual(out.results, []);
 });

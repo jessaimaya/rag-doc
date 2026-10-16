@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-10-15 — Fail fast when retrieval is down
+
+- A retrieval failure (database or embedding provider down) used to surface as a failed tool call; the agent retried the search until it ran out of steps and returned no text, so the user waited about 10 s for a generic error. The tool now returns a `retrieval_unavailable` result, and the agent answers once (about 4 s) that it cannot consult the documents, without inventing anything. The cause is logged server-side (`ECONNREFUSED`, ...).
+- `dev.sh` warns at startup when Postgres is unreachable and names the Docker container to start; it also stops both servers on SIGHUP.
+
 ## 2026-10-15 — Frosted-glass UI and preparing the repo to be public
 
 - Chat restyle: one steel-blue hue, Geist + Geist Mono, a frosted frame over a blue photo (tinted veil for light and dark, gradient fallback), pill composer, orb logo. Answers stay on opaque surfaces for readability.

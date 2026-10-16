@@ -12,6 +12,19 @@ if [[ ! -f "$ROOT/.env" ]]; then
   exit 1
 fi
 
+# Retrieval needs Postgres. Warn early instead of letting the first question fail.
+db_url="$(grep -E '^DATABASE_URL=' "$ROOT/.env" | head -1 | cut -d= -f2- | tr -d '"'"'"'')"
+db_hostport="$(sed -E 's#^[a-z]+://[^@]*@([^/?]+).*#\1#' <<<"$db_url")"
+db_host="${db_hostport%%:*}"; db_port="${db_hostport##*:}"; [[ "$db_port" == "$db_hostport" ]] && db_port=5432
+if ! (exec 3<>"/dev/tcp/$db_host/$db_port") 2>/dev/null; then
+  echo "WARNING: Postgres at $db_host:$db_port is not reachable, so answers will fail until it is up." >&2
+  if [[ "$db_host" == "localhost" || "$db_host" == "127.0.0.1" ]] && command -v docker >/dev/null; then
+    # `docker ps --filter publish=` ignores stopped containers, so read the configured port bindings instead.
+    name="$(docker ps -aq | xargs -r docker inspect --format '{{.Name}} {{json .HostConfig.PortBindings}}' 2>/dev/null | grep "\"HostPort\":\"$db_port\"" | head -1 | awk '{print $1}' | tr -d /)"
+    [[ -n "$name" ]] && echo "         It looks like the container \"$name\" publishes that port: docker start $name" >&2
+  fi
+fi
+
 [[ -d "$ROOT/node_modules" ]] || (cd "$ROOT" && npm install)
 [[ -d "$ROOT/frontend/node_modules" ]] || (cd "$ROOT/frontend" && npm install)
 
@@ -26,7 +39,7 @@ cleanup() {
   for pid in "${pids[@]}"; do kill -- "-$pid" 2>/dev/null || kill "$pid" 2>/dev/null || true; done
   wait 2>/dev/null || true
 }
-trap cleanup INT TERM EXIT
+trap cleanup INT TERM HUP EXIT
 
 # setsid gives each service its own process group so cleanup can kill the full tree.
 cd "$ROOT"
