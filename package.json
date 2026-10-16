@@ -9,6 +9,7 @@
     "build": "NODE_OPTIONS='--max-old-space-size=2048' mastra build",
     "start": "NODE_OPTIONS='--max-old-space-size=2048' mastra build && mastra start",
     "start-only": "mastra start",
+    "fetch-docs": "tsx src/mastra/scripts/fetch-documents.ts",
     "ingest": "tsx src/mastra/scripts/ingest.ts",
     "search": "tsx src/mastra/scripts/search.ts",
     "eval": "tsx src/mastra/scripts/eval-retrieval.ts",
@@ -19,7 +20,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "type": "module",
   "engines": {
     "node": ">=20.9.0"

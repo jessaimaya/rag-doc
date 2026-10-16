@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { skippedDocIds, splitByCorpus } from './eval-scope';
 import { auroc, bestThreshold, firstRelevantRank, isRelevant, median, normalize, summarizeRanks, type EvalQuestion } from './metrics';
 
 const question: EvalQuestion = {
@@ -98,4 +99,14 @@ test('parseJudgment defaults the boolean flags a judge may omit', () => {
   const j = parseJudgment('{"claims":[],"correctness":"not_applicable","reason":"r"}');
   assert.equal(j.declined, false);
   assert.equal(j.admitsMissing, false);
+});
+
+test('questions that rely on a skipped document are left out, unanswerable ones stay', () => {
+  const skipped = skippedDocIds([{ file: 'Guía trámite Programación de cirugía.pdf', skip: true }, { file: 'faq.md' }]);
+  assert.deepEqual([...skipped], ['guia-tramite-programacion-de-cirugia-pdf']);
+  const guide: EvalQuestion = { ...question, id: 'guide', relevant: [{ doc: 'guia-tramite-programacion-de-cirugia-pdf', mustContain: ['x'] }] };
+  const none: EvalQuestion = { ...question, id: 'none', relevant: [] };
+  const split = splitByCorpus([question, guide, none], skipped);
+  assert.deepEqual(split.runnable.map(q => q.id), ['q', 'none']);
+  assert.deepEqual(split.skipped.map(q => q.id), ['guide']);
 });

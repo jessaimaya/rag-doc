@@ -11,3 +11,7 @@ frontend/node_modules
 
 # Blog/portfolio assets and source photos (kept locally, not in the repo)
 media/
+
+# Third-party PDFs are rebuilt from documents/manifest.json with `npm run fetch-docs`
+documents/*.pdf
+!documents/clinica-valle-verde-faq.pdf

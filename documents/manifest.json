@@ -6,7 +6,8 @@
     "language": "es",
     "source_url": null,
     "retrieved": "2026-10-14",
-    "notes": "Original document. Source URL still to be filled in."
+    "notes": "Not in the public repo: authorship unconfirmed and no public source URL. Questions about it are skipped by the evals when it is not indexed.",
+    "skip": true
   },
   {
     "file": "imss-incapacidad-9220-003-329.pdf",

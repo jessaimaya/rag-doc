@@ -2,6 +2,7 @@ import 'dotenv/config';
 import * as fs from 'fs';
 import * as path from 'path';
 import { insuranceAgent } from '../agents/insurance-agent';
+import { loadEvalQuestions } from '../rag/eval-scope';
 import { judgeAnswer, type Judgment } from '../rag/judge';
 import { fabricatedCitations, isRelevant, isUnanswerable, mean, type EvalQuestion, type RetrievedRef } from '../rag/metrics';
 import { summarize, type GenerationSummary } from '../rag/gen-summary';
@@ -111,7 +112,7 @@ async function runPass(questions: EvalQuestion[], chunks: StoredChunk[], cutoff:
 }
 
 async function main() {
-  const all: EvalQuestion[] = JSON.parse(fs.readFileSync(path.resolve('evals/questions.json'), 'utf8'));
+  const { runnable: all } = loadEvalQuestions();
   const questions = only ? all.filter(q => only.includes(q.id)) : all;
   const chunks = await loadAllChunks();
   console.log(`🧪 ${questions.length} questions × ${cutoffs.length} pass(es), judge ${process.env.EVAL_JUDGE_MODEL || 'claude-haiku-5-5'}`);

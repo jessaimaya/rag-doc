@@ -12,6 +12,7 @@ import {
   type EvalQuestion,
   type QuestionTag,
 } from '../rag/metrics';
+import { loadEvalQuestions } from '../rag/eval-scope';
 import { hybridSearch, type SearchMode } from '../rag/retriever';
 import { closePool, loadAllChunks } from '../rag/store';
 import { embed } from '../rag/voyage';
@@ -56,7 +57,7 @@ const pct = (x: number) => `${(x * 100).toFixed(0)}%`;
 const fmt = (x: number) => (Number.isNaN(x) ? '–' : x.toFixed(3));
 
 async function main() {
-  const questions: EvalQuestion[] = JSON.parse(fs.readFileSync(path.resolve('evals/questions.json'), 'utf8'));
+  const { runnable: questions } = loadEvalQuestions();
   const chunks = await loadAllChunks();
   if (!chunks.length) throw new Error('The index is empty. Run `npm run ingest` first.');
 
