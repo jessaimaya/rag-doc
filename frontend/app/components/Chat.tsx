@@ -2,9 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { STARTERS } from '@/lib/starters';
+import type { Source } from '@/lib/sources';
 import { Markdown } from './Markdown';
+import { Sources } from './Sources';
 
-type Message = { id: string; role: 'user' | 'assistant'; content: string };
+type Message = { id: string; role: 'user' | 'assistant'; content: string; sources?: Source[] };
 type ChatError = { message: string };
 
 const MAX_INPUT = 2000;
@@ -81,7 +83,8 @@ export function Chat() {
       if (id !== requestId.current) return; // the conversation was reset while waiting
       const text = typeof data.text === 'string' ? data.text.trim() : '';
       if (!text) throw new ApiError(502);
-      setMessages((prev) => [...prev, { id: newId(), role: 'assistant', content: text }]);
+      const sources: Source[] = Array.isArray(data.sources) ? data.sources : [];
+      setMessages((prev) => [...prev, { id: newId(), role: 'assistant', content: text, sources }]);
     } catch (err) {
       if (id !== requestId.current) return;
       console.error('Chat request failed', err);
@@ -194,6 +197,7 @@ export function Chat() {
                       <div className="rounded-2xl rounded-tl-md border border-line bg-bg px-5 py-4">
                         <Markdown>{m.content}</Markdown>
                       </div>
+                      {m.sources && m.sources.length > 0 && <Sources sources={m.sources} />}
                     </article>
                   ),
                 )}

@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-10-15 — Source cards, and a leak in the chat route
+
+- Each answer now has an expandable "Pasajes consultados" list: one card per retrieved passage with document, section, page, a relevance bar, the passage text and a link to the original document. Passages are deduplicated across searches, sorted by relevance, at most 6.
+- Fix (security): `/api/chat` forwarded the backend's entire agent response to the browser, including Anthropic response headers (organization id, rate-limit counters), token usage and raw tool arguments. It now returns only `{ text, sources }`. Source URLs are only rendered when they are `http(s)`.
+
 ## 2026-10-15 — Fail fast when retrieval is down
 
 - A retrieval failure (database or embedding provider down) used to surface as a failed tool call; the agent retried the search until it ran out of steps and returned no text, so the user waited about 10 s for a generic error. The tool now returns a `retrieval_unavailable` result, and the agent answers once (about 4 s) that it cannot consult the documents, without inventing anything. The cause is logged server-side (`ECONNREFUSED`, ...).

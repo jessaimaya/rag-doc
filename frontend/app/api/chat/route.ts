@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { checkRateLimit, clientIp } from '@/lib/rate-limit';
+import { extractSources } from '@/lib/sources';
 
 const MAX_MESSAGES = 30;
 const MAX_USER_LENGTH = 2000;
@@ -64,7 +65,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json(await response.json());
+    // Send the browser only what it needs. The raw agent response also carries provider headers (organization id, rate
+    // limits), token usage and tool arguments.
+    const data = await response.json();
+    return NextResponse.json({ text: typeof data?.text === 'string' ? data.text : '', sources: extractSources(data) });
   } catch (error) {
     console.error('Chat route error', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
