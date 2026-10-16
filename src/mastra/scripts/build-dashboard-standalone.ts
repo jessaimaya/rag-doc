@@ -9,6 +9,9 @@ import * as path from 'path';
  *   npm run dashboard:data && npm run dashboard:standalone
  */
 
+/**
+ * Pinned d3 version loaded from a CDN; it is the only external request the page makes.
+ */
 const D3_URL = 'https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js';
 const dir = path.resolve('evals');
 const page = fs.readFileSync(path.join(dir, 'dashboard/index.html'), 'utf8');
@@ -17,6 +20,9 @@ const data = Object.fromEntries(names.map(n => [n, JSON.parse(fs.readFileSync(pa
 // "</" inside inline JSON would end the script element early
 const dataJson = JSON.stringify(data).replace(/</g, '\\u003c');
 
+/**
+ * Design tokens (colors, fonts, spacing, chart series) with light and dark variants. They stand in for the variables the dashboard artifact normally provides.
+ */
 const TOKENS = `
 :root {
   --font-anthropic-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -56,6 +62,9 @@ a { color: inherit; }
 `;
 
 // Stand-in for the artifact's `dash` runtime: datasets are embedded, so every source is always "ok".
+/**
+ * Stand-in for the artifact's `dash` runtime: it serves the embedded datasets, so every data source is always 'ok', and redraws charts on resize.
+ */
 const SHIM = `
 (function () {
   var raw = JSON.parse(document.getElementById('ev-data').textContent);

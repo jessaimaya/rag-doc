@@ -1,6 +1,9 @@
 import 'dotenv/config';
 import { closePool, ensureSchema, getPool, listDocuments } from '../rag/store';
 
+/**
+ * Health check: connects, makes sure the schema and pgvector exist (`ensureSchema` is idempotent) and lists the ingested documents. Run it first when something fails.
+ */
 async function main() {
   const db = getPool();
   await db.query('SELECT 1');

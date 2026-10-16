@@ -4,9 +4,10 @@ import * as path from 'path';
 import { detectType, SUPPORTED_EXTENSIONS, type DocType } from './loaders';
 
 /**
- * documents/manifest.json is the source of truth for what gets ingested.
- * Each entry points at a local `file` (relative to documents/) or a remote `url`.
- * Any extra keys you add are kept and stored as chunk metadata.
+ * Shape of one entry in documents/manifest.json, the source of truth for what gets ingested.
+ * Each entry points at a local `file` (relative to documents/) or a remote `url`, never both (the `.refine` enforces it).
+ * `.loose()` keeps any extra keys you add, and they end up stored as document metadata. `skip: true` lists a document
+ * without ingesting it (for example, files that cannot be redistributed).
  */
 export const manifestEntrySchema = z
   .object({
@@ -26,6 +27,9 @@ export const manifestEntrySchema = z
 
 export type ManifestEntry = z.infer<typeof manifestEntrySchema>;
 
+/**
+ * A manifest entry resolved into something ingestible: a stable id, a title, the file type and where the bytes come from.
+ */
 export interface DocumentSpec {
   docId: string;
   title: string;
@@ -35,6 +39,9 @@ export interface DocumentSpec {
   entry: ManifestEntry;
 }
 
+/**
+ * Accent-free, lower-case, dash-separated id. It becomes the `doc_id`, so the same file name always maps to the same document.
+ */
 export function slugify(value: string): string {
   return value
     .normalize('NFD')
@@ -44,11 +51,25 @@ export function slugify(value: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
+/**
+ * Fallback title from a file name: drop the extension and turn dashes/underscores into spaces.
+ */
 export function titleFromName(name: string): string {
   return path.basename(name).replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ').trim();
 }
 
-/** Reads the manifest and resolves every entry. Supported files in the folder that the manifest does not mention are still ingested (with defaults) and reported in `unlisted`. */
+/**
+ * Reads the manifest and resolves every entry into a DocumentSpec.
+ *
+ * - Validates the manifest with zod, so a typo fails with a clear message.
+ * - File names are compared in NFC form: on Linux "ó" may be stored decomposed on disk and composed in the manifest.
+ * - Supported files in the folder that the manifest does not mention are still ingested with defaults and returned in
+ *   `unlisted`, so nothing is silently ignored.
+ * - Two documents producing the same id is an error: it would make one overwrite the other.
+ *
+ * Further reading:
+ * - Unicode Standard Annex #15, Normalization Forms (why "ó" can be stored two ways): https://unicode.org/reports/tr15/
+ */
 export function resolveDocuments(dir: string): { specs: DocumentSpec[]; unlisted: string[] } {
   const manifestPath = path.join(dir, 'manifest.json');
   const raw: unknown = fs.existsSync(manifestPath) ? JSON.parse(fs.readFileSync(manifestPath, 'utf8')) : [];

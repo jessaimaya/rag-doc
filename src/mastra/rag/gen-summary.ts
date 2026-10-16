@@ -16,6 +16,14 @@ const admits = (r: SummaryRow) => r.judgment!.declined || r.judgment!.admitsMiss
 /** ...and do not invent anything while doing so. */
 const handled = (r: SummaryRow) => admits(r) && r.judgment!.claims.every(c => c.supported);
 
+/**
+ * Aggregates the judged rows of a generation eval into the numbers of the report. Rows that errored are excluded.
+ *
+ * Answerable questions: share that called the tool, retrieved a relevant passage, were correct/partial/incorrect, were
+ * wrongly refused, plus faithfulness (supported claims / all claims) and answers with at least one unsupported claim.
+ * Unanswerable questions: share where the assistant admitted the information is missing, and "handled" = admitted it
+ * AND invented nothing. Divisions by an empty group give NaN, which the report prints as a dash.
+ */
 export function summarize(rows: SummaryRow[]) {
   const ok = rows.filter(r => r.judgment && !r.error);
   const answerable = ok.filter(r => !r.unanswerable);

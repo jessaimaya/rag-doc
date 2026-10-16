@@ -57,6 +57,14 @@ export interface Heading {
   rest?: string;
 }
 
+/**
+ * Decides whether a line is a heading and at what level (1 = top). Real documents rarely use one convention, so it
+ * recognizes four: markdown `#`, legal headings (TÍTULO / CAPÍTULO / SECCIÓN, levels 1-3), "Artículo N" (level 4; the text
+ * after the number stays as the start of the body) and numbered titles like "6.1 Requisitos" (level = number of dots + 1).
+ * A numbered line is rejected when it looks like a sentence or a table-of-contents entry (long, ends with
+ * punctuation, has a comma or a trailing page number). Headings drive the breadcrumb of every chunk and the rule that
+ * a chunk never crosses a section.
+ */
 export function detectHeading(line: string): Heading | null {
   const text = line.replace(/\s+/g, ' ').trim();
   if (!text) return null;
@@ -89,6 +97,11 @@ const isTableRule = (line: string) => /^\s*\|[\s:|-]+\|\s*$/.test(line);
 
 const ABBREVIATIONS = /\b(Dra?|Lic|Art|N[úu]m|No|Sr|Sra|Srita|Ing|Mtro|Mtra|Fracc|etc|Vo|Bo|p[áa]gs?|pp|vs|Av|Col|Tel|Cd|Dir|Prof|Gral|Fig|S\.A|C\.V|A\.C|S\.C|A\.P)\./g;
 
+/**
+ * Splits a paragraph into sentences on . ! ? … followed by an uppercase letter, opening mark or digit. Spanish
+ * abbreviations ("Dra.", "Art.", "S.A.") would look like sentence ends, so their dots are swapped for a placeholder
+ * character before the split and restored afterwards.
+ */
 export function splitSentences(paragraph: string): string[] {
   const protectedText = paragraph.replace(ABBREVIATIONS, m => m.slice(0, -1) + '\u0001');
   return protectedText
@@ -97,7 +110,9 @@ export function splitSentences(paragraph: string): string[] {
     .filter(Boolean);
 }
 
-/** Merges very short sentences into the previous one so every atom carries enough meaning to embed. */
+/**
+ * Merges very short sentences into the previous one so every atom carries enough meaning to embed (a 10-character atom produces a noisy vector).
+ */
 function mergeShort(sentences: string[], minLen = 40): string[] {
   const out: string[] = [];
   for (const s of sentences) {
@@ -109,6 +124,15 @@ function mergeShort(sentences: string[], minLen = 40): string[] {
 
 // ---------- parsing ----------
 
+/**
+ * Step 1-2 of chunking: turns blocks of text into sections made of atoms.
+ *
+ * A single pass over the lines keeps one "open paragraph". A blank line closes it; a heading closes it and opens a new
+ * section whose `path` is the heading stack (["Title", "Chapter", "Article"]); a list item starts its own atom (steps and
+ * requirements stay whole); table rows are gathered into one table atom; other lines are joined into a paragraph that is
+ * then split into sentences. PDF pages do not close paragraphs, because text often continues on the next page. The `para`
+ * number records which atoms came from the same paragraph so they can be re-joined with a space instead of a newline.
+ */
 export function parseSections(blocks: Block[]): Section[] {
   const sections: Section[] = [{ path: [], atoms: [] }];
   const stack: { level: number; title: string }[] = [];
@@ -184,9 +208,10 @@ export function parseSections(blocks: Block[]): Section[] {
 const bodyChars = (s: Section) => s.atoms.reduce((n, a) => n + a.text.length, 0);
 
 /**
- * A heading with almost no body (a one-line article, "CAPÍTULO II") is folded into the section that follows,
- * keeping its title as text. When the folded sections are siblings (same depth and parent) the destination is
- * labelled as a range ("ARTICULO 112 – ARTICULO 113") for articles so a citation never points at only the last article.
+ * A heading with almost no body (a one-line article, "CAPÍTULO II") would become a useless chunk, so it is folded into
+ * the section that follows, keeping its title as text. When the folded sections are siblings (same depth and parent)
+ * the destination is labelled as a range ("ARTICULO 112 – ARTICULO 113") for articles so a citation never points at only
+ * the last article.
  */
 export function mergeTinySections(sections: Section[]): Section[] {
   const out: Section[] = [];
@@ -219,12 +244,18 @@ export function mergeTinySections(sections: Section[]): Section[] {
 
 // ---------- semantic breakpoints ----------
 
+/**
+ * Component-wise average of vectors; used to summarize a window of atoms as one vector.
+ */
 function mean(vectors: number[][]): number[] {
   const out = new Array(vectors[0].length).fill(0);
   for (const v of vectors) for (let i = 0; i < v.length; i++) out[i] += v[i];
   return out.map(x => x / vectors.length);
 }
 
+/**
+ * Cosine similarity of two vectors: 1 = same direction (same topic), 0 = unrelated. Returns 0 for a zero vector instead of NaN.
+ */
 export function cosine(a: number[], b: number[]): number {
   let dot = 0, na = 0, nb = 0;
   for (let i = 0; i < a.length; i++) {
@@ -236,8 +267,12 @@ export function cosine(a: number[], b: number[]): number {
 }
 
 /**
- * Topic-shift score for the boundary *before* atom i (1..n-1): 1 - cos(mean of the `window` atoms
- * before, mean of the `window` atoms from i on). Index 0 is unused.
+ * Topic-shift score for the boundary *before* atom i (1..n-1): 1 - cos(mean of the `window` atoms before, mean of the
+ * `window` atoms from i on). Index 0 is unused.
+ *
+ * Why a window and not one sentence: a single sentence is noisy, so comparing the average of 2 atoms on each side
+ * gives a smoother signal. A high value means the text on the right talks about something different from the left,
+ * which makes the boundary a good place to cut.
  */
 export function boundaryDistances(embeddings: number[][], window: number): number[] {
   const n = embeddings.length;
@@ -250,6 +285,9 @@ export function boundaryDistances(embeddings: number[][], window: number): numbe
   return dist;
 }
 
+/**
+ * Value below which a share `p` of the numbers fall. It turns 'distance' scores into a relative threshold (top 15% of shifts) that works for any document.
+ */
 export function percentile(values: number[], p: number): number {
   if (!values.length) return Infinity;
   const sorted = [...values].sort((a, b) => a - b);
@@ -258,7 +296,11 @@ export function percentile(values: number[], p: number): number {
 
 // ---------- packing ----------
 
-/** Splits an atom larger than `max` (long list item, table) so no chunk blows past the limit. */
+/**
+ * Splits an atom larger than `max` (a long list item, a table) so no chunk blows past the limit. Tables are split by
+ * rows and every piece repeats the header row, so each part is still readable on its own. Text is cut at the last
+ * space before the limit (or at the limit itself if there is no space in the second half).
+ */
 export function splitOversize(atom: Atom, max: number): Atom[] {
   if (atom.text.length <= max) return [atom];
   if (atom.kind === 'table') {
@@ -288,6 +330,9 @@ export function splitOversize(atom: Atom, max: number): Atom[] {
   return out;
 }
 
+/**
+ * Re-assembles atoms into text: a space between atoms from the same paragraph, a newline between paragraphs.
+ */
 function join(atoms: Atom[]): string {
   let text = '';
   atoms.forEach((a, i) => {
@@ -297,6 +342,18 @@ function join(atoms: Atom[]): string {
   return text;
 }
 
+/**
+ * Step 4: packs a section's atoms into chunks of roughly minChars-maxChars.
+ *
+ * Rules, in order: never exceed `maxChars` (close the chunk before the atom that would overflow it); close at a semantic
+ * breakpoint once the chunk has at least `minChars`; never cross a section boundary (each call handles one section).
+ * A last group that is a runt (tiny, or small enough to fit in the previous one) is folded into the previous chunk, and
+ * fragments under 20 characters (page furniture) are dropped. Each chunk gets its breadcrumb ("Title › Section"), which
+ * is embedded and indexed with the text but not shown to the user, plus its first and last page.
+ *
+ * Further reading:
+ * - Anthropic, "Contextual Retrieval" (prepending context to each chunk before embedding and indexing): https://www.anthropic.com/news/contextual-retrieval
+ */
 export function packSection(
   section: Section,
   breaks: Set<number>, // indexes into section.atoms where a semantic breakpoint sits *before* the atom
@@ -347,6 +404,15 @@ export function packSection(
   });
 }
 
+/**
+ * Entry point of the chunker: blocks in, chunks out.
+ *
+ * 1. `parseSections` builds sections and atoms from the headings and the layout.
+ * 2. If an `embed` function was given, all atoms are embedded in one call, and each section's boundary distances are
+ *    computed. A single global threshold (the 85th percentile of all shifts) picks the breakpoints, so a chunk is cut where
+ *    the topic really changes and not at a fixed size.
+ * 3. `packSection` builds the chunks. Without `embed` (the `--no-semantic` flag, or a dry run) only the structure is used.
+ */
 export async function chunkDocument(blocks: Block[], options: ChunkOptions): Promise<Chunk[]> {
   const opts = { ...DEFAULTS, ...options };
   const sections = parseSections(blocks);

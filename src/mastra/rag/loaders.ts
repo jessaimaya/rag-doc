@@ -5,7 +5,10 @@ import * as path from 'path';
 
 export type DocType = 'pdf' | 'docx' | 'html' | 'md' | 'txt';
 
-/** A contiguous piece of extracted text. PDFs produce one block per page. */
+/**
+ * A contiguous piece of extracted text. PDFs produce one block per page, which is how chunks later know their page number
+ * (for citations). Other formats produce a single block without a page.
+ */
 export interface Block {
   text: string;
   page?: number;
@@ -29,6 +32,9 @@ const EXTENSIONS: Record<string, DocType> = {
 
 export const SUPPORTED_EXTENSIONS = Object.keys(EXTENSIONS);
 
+/**
+ * Decides the file type from the extension (query strings ignored) or, for downloads, from the HTTP content-type. Undefined means unknown.
+ */
 export function detectType(nameOrUrl: string, contentType?: string): DocType | undefined {
   const ext = path.extname(nameOrUrl.split('?')[0]).toLowerCase();
   if (EXTENSIONS[ext]) return EXTENSIONS[ext];
@@ -40,6 +46,10 @@ export function detectType(nameOrUrl: string, contentType?: string): DocType | u
   return undefined;
 }
 
+/**
+ * Turns raw bytes into text blocks, whatever the format. Everything downstream (chunker, embeddings) only sees
+ * `Block[]`, so supporting a new format means adding a case here and nothing else.
+ */
 export async function loadDocument(buffer: Buffer, type: DocType): Promise<LoadedDocument> {
   switch (type) {
     case 'pdf':
@@ -59,6 +69,9 @@ export async function loadDocument(buffer: Buffer, type: DocType): Promise<Loade
 
 // ---------- Markdown / HTML ----------
 
+/**
+ * Markdown/text: strips the BOM and the YAML front matter, using its `title:` (or the first `# heading`) as the detected title.
+ */
 export function loadMarkdown(raw: string): LoadedDocument {
   let text = raw.replace(/^﻿/, '');
   let detectedTitle: string | undefined;
@@ -71,7 +84,12 @@ export function loadMarkdown(raw: string): LoadedDocument {
   return { blocks: [{ text }], detectedTitle };
 }
 
-/** Converts HTML to plain text but keeps headings as `#` lines so the chunker can use the structure. */
+/**
+ * Converts HTML to plain text but keeps headings as `#` lines so the chunker can use the structure.
+ *
+ * Why: html-to-text alone flattens headings into ordinary lines, and the chunker's section detection (and the breadcrumbs
+ * used in citations) would be lost. Links, images, scripts, styles, nav and footer are dropped as noise.
+ */
 export function htmlToMarkdownish(html: string): string {
   const withHeadings = html.replace(/<h([1-6])[^>]*>([\s\S]*?)<\/h\1>/gi, (_m, level, inner) => {
     const title = inner.replace(/<[^>]+>/g, '').trim();
@@ -93,8 +111,9 @@ export function htmlToMarkdownish(html: string): string {
 // ---------- PDF ----------
 
 /**
- * Some PDFs (the IMSS procedures) embed fonts whose Latin-1 codes are read back as MacRoman, so
- * "Descripción" comes out as "DescripciÛn". Detect that pattern and map the characters back.
+ * Repair table for a font-encoding bug. Some PDFs (the IMSS procedures) embed fonts whose Latin-1 codes are read back
+ * as MacRoman, so "Descripción" comes out as "DescripciÛn". The table maps each MacRoman character back to the Latin-1
+ * character with the same byte value.
  */
 const MAC_TO_LATIN1 = (() => {
   const map = new Map<string, string>();
@@ -105,6 +124,12 @@ const MAC_TO_LATIN1 = (() => {
   return map;
 })();
 
+/**
+ * Applies the repair only when the text clearly has the bug: it counts suspicious patterns ("a" + Û/Ò/˙/È/Ì/· + "a") against
+ * genuine accented ones, and does nothing unless the broken ones are at least 10 and twice the good ones. That guard
+ * keeps correct text from being damaged. Typographic quotes and dashes are only remapped when they sit between two
+ * letters (an uppercase accent inside a word such as "FORMACIÓN"), because at a word edge they are usually real.
+ */
 export function fixMacRomanMojibake(text: string): string {
   const suspicious = (text.match(/[a-z][ÛÒ˙ÈÌ·][a-z]/g) ?? []).length;
   const genuine = (text.match(/[a-z][óñúéí][a-z]/g) ?? []).length;
@@ -122,6 +147,11 @@ export function fixMacRomanMojibake(text: string): string {
     .join('');
 }
 
+/**
+ * Extracts the text of each PDF page as its own block (so page numbers survive), removes the "-- 3 of 10 --" markers
+ * the parser inserts, repairs the encoding bug when present and fails clearly on scanned PDFs, which have no text layer
+ * (OCR is not supported). The parser is always destroyed, even on error, to free its resources.
+ */
 async function loadPdf(buffer: Buffer): Promise<Block[]> {
   if (!buffer?.length) throw new Error('Invalid PDF file: empty buffer');
   const parser = new PDFParse({ data: new Uint8Array(buffer) });
@@ -142,7 +172,14 @@ async function loadPdf(buffer: Buffer): Promise<Block[]> {
   }
 }
 
-/** Drops running headers/footers: short lines that repeat (ignoring digits) on many pages. */
+/**
+ * Drops running headers and footers: short lines that repeat (ignoring digits) on many pages, such as a document title
+ * or "Page 3 of 51". Left in, they would pollute every chunk and match every query a little.
+ *
+ * How: each line is normalized (digits become '#') and counted by the number of pages it appears on. A line that
+ * appears on at least 40% of the pages (minimum 3) is removed. Lines over 80 characters are always kept, since
+ * a long line is content, not furniture. Documents under 4 pages are left alone: there is too little to compare.
+ */
 export function removeRepeatedLines(blocks: Block[]): Block[] {
   if (blocks.length < 4) return blocks;
   const norm = (line: string) => line.toLowerCase().replace(/\d+/g, '#').trim();

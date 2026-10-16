@@ -51,6 +51,9 @@ interface Row {
 
 const pct = (x: number) => (Number.isNaN(x) ? '–' : `${(x * 100).toFixed(0)}%`);
 
+/**
+ * Runs `fn` over `items` with at most `size` in flight, keeping the results in input order. It limits parallel calls to the LLM so the eval does not hit rate limits.
+ */
 async function pool<T, R>(items: T[], size: number, fn: (item: T, i: number) => Promise<R>): Promise<R[]> {
   const out: R[] = new Array(items.length);
   let next = 0;
@@ -65,6 +68,13 @@ async function pool<T, R>(items: T[], size: number, fn: (item: T, i: number) => 
   return out;
 }
 
+/**
+ * Runs every question through the real agent and judges the result, with the given relevance cutoff.
+ *
+ * For each question: call the agent, read the tool results to know what it retrieved, check whether a relevant passage
+ * was among them, detect fabricated page numbers/URLs without an LLM, and ask the judge. The judge sees the same metadata the
+ * agent saw (page, URL), so citing it is not penalized. One question failing is recorded in its row and does not stop the pass.
+ */
 async function runPass(questions: EvalQuestion[], chunks: StoredChunk[], cutoff: number): Promise<Row[]> {
   process.env.RAG_MIN_RELEVANCE = String(cutoff);
   const titleToDoc = new Map(chunks.map(c => [c.title, c.docId]));
@@ -111,6 +121,16 @@ async function runPass(questions: EvalQuestion[], chunks: StoredChunk[], cutoff:
   });
 }
 
+/**
+ * Runs one pass per cutoff (`--compare` runs 0 and 0.6 to measure what the cutoff buys), then writes a markdown report and a JSON file
+ * with the full rows. The report separates answerable questions (correctness, faithfulness, false refusals, fabricated
+ * citations) from unanswerable ones (did it admit the information is missing without inventing anything?), and lists the
+ * problem cases with the judge's reason.
+ *
+ * Further reading:
+ * - Es et al., "Ragas: Automated Evaluation of Retrieval Augmented Generation": https://arxiv.org/abs/2309.15217
+ * - Zheng et al., "Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena": https://arxiv.org/abs/2306.05685
+ */
 async function main() {
   const { runnable: all } = loadEvalQuestions();
   const questions = only ? all.filter(q => only.includes(q.id)) : all;

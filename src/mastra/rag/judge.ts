@@ -8,6 +8,15 @@ import { z } from 'zod';
  * set EVAL_JUDGE_MODEL=claude-sonnet-5-5 for a more reliable verdict.
  */
 
+/**
+ * What the judge must return for each answer. `claims` is the heart: each factual statement is checked against the
+ * RETRIEVED passages (not against the judge's own knowledge), which measures faithfulness. `declined` and `admitsMissing`
+ * tell refusals apart from honest "I don't have that" answers, `correctness` compares with the gold passages, and
+ * `reason` makes a verdict auditable. The zod schema validates the model's JSON and fills defaults.
+ *
+ * Further reading:
+ * - Es et al., "Ragas: Automated Evaluation of Retrieval Augmented Generation" (faithfulness): https://arxiv.org/abs/2309.15217
+ */
 export const judgmentSchema = z.object({
   claims: z
     .array(z.object({ claim: z.string(), supported: z.boolean() }))
@@ -23,6 +32,11 @@ export const judgmentSchema = z.object({
 
 export type Judgment = z.infer<typeof judgmentSchema>;
 
+/**
+ * The judge's instructions. The key choices: it is "strict", outside knowledge does not count as support (a true but
+ * ungrounded claim is still a RAG failure), boilerplate such as disclaimers is not listed as a claim (it would inflate
+ * the score), and it must answer with bare JSON so the output can be parsed without a structured-output feature.
+ */
 const SYSTEM = `You are a strict evaluator of a Spanish-language assistant that answers questions about medical insurance paperwork in Mexico using a knowledge base. You are given the user's question, the passages the assistant RETRIEVED, optionally GOLD passages known to contain the answer, and the assistant's ANSWER.
 
 Return:
@@ -35,6 +49,9 @@ Return:
 Respond with ONLY a JSON object, no prose and no code fences, exactly in this shape:
 {"claims":[{"claim":"...","supported":true}],"declined":false,"admitsMissing":false,"correctness":"correct","reason":"..."}`;
 
+/**
+ * Everything the judge sees: the question, what the agent retrieved, the gold passages (empty when the corpus has no answer) and the final answer.
+ */
 export interface JudgeInput {
   question: string;
   retrieved: string[];
@@ -42,9 +59,16 @@ export interface JudgeInput {
   answer: string;
 }
 
+/**
+ * Formats passages as a numbered list so the judge can refer to them; '(none)' when there are none.
+ */
 const numbered = (items: string[]) => (items.length ? items.map((t, i) => `[${i + 1}] ${t}`).join('\n\n') : '(none)');
 
-/** Returns the first balanced {...} object in the text (tolerates code fences, prose before/after, or a second object). */
+/**
+ * Returns the first balanced {...} object in the text. Models sometimes wrap the JSON in code fences or add prose
+ * before or after it, so instead of JSON.parse on the whole reply this scans for the first '{' and walks to its matching
+ * '}', ignoring braces inside strings (and escaped quotes).
+ */
 export function firstJsonObject(text: string): string {
   const start = text.indexOf('{');
   if (start === -1) throw new Error(`Judge returned no JSON: ${text.slice(0, 120)}`);
@@ -62,10 +86,23 @@ export function firstJsonObject(text: string): string {
   throw new Error(`Judge JSON is not closed: ${text.slice(0, 120)}`);
 }
 
+/**
+ * Extracts the JSON object and validates it with the schema. Throws if it is missing or malformed.
+ */
 export function parseJudgment(text: string): Judgment {
   return judgmentSchema.parse(JSON.parse(firstJsonObject(text)));
 }
 
+/**
+ * Asks the judge model to grade one answer.
+ *
+ * The prompt lists the question, the retrieved passages, the gold passages (or states that the corpus has no answer) and
+ * the answer. LLM output is not always valid JSON, so a parse or validation failure retries up to 3 times before the
+ * last error is thrown. The default judge is Haiku to keep eval runs cheap; EVAL_JUDGE_MODEL switches to a stronger one.
+ *
+ * Further reading:
+ * - Zheng et al., "Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena": https://arxiv.org/abs/2306.05685
+ */
 export async function judgeAnswer(input: JudgeInput): Promise<Judgment> {
   const prompt = [
     `QUESTION:\n${input.question}`,

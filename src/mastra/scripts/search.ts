@@ -13,6 +13,9 @@ const option = (name: string) => {
 };
 const query = args.filter((a, i) => !a.startsWith('--') && !(i > 0 && args[i - 1].startsWith('--') && ['category', 'top'].includes(args[i - 1].slice(2)))).join(' ');
 
+/**
+ * Runs one query through the same `hybridSearch` the agent uses and prints, for every hit, its rank in the vector and BM25 lists, the fused RRF score and the rerank score. It is the quickest way to see why a passage was or was not retrieved.
+ */
 async function main() {
   if (!query) throw new Error('Usage: npm run search -- "your question" [--no-rerank] [--category X] [--top N]');
   const results = await hybridSearch(query, {

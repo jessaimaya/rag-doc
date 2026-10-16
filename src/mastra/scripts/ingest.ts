@@ -23,8 +23,15 @@ import { embed } from '../rag/voyage';
  */
 
 // Bump when chunking logic changes so unchanged files are re-chunked.
+/**
+ * Part of the content hash. Bump it whenever the chunking logic changes: files whose bytes did not change would
+ * otherwise be skipped as "unchanged" and keep their old chunks.
+ */
 const CHUNKER_VERSION = 'v3';
 
+/**
+ * Tiny CLI parser: `flag(name)` for booleans, `option(name)` for `--name value`.
+ */
 const args = process.argv.slice(2);
 const flag = (name: string) => args.includes(`--${name}`);
 const option = (name: string) => {
@@ -38,6 +45,9 @@ const force = flag('force');
 const only = option('only')?.toLowerCase();
 const dir = path.resolve(option('dir') ?? 'documents');
 
+/**
+ * Gets the bytes of a document from disk or by downloading its URL; the type can come from the manifest, the extension or the content-type header.
+ */
 async function readSource(spec: DocumentSpec): Promise<{ buffer: Buffer; type: ReturnType<typeof detectType> }> {
   if (spec.file) return { buffer: fs.readFileSync(spec.file), type: spec.type };
   const res = await fetch(spec.url!);
@@ -46,6 +56,14 @@ async function readSource(spec: DocumentSpec): Promise<{ buffer: Buffer; type: R
   return { buffer: Buffer.from(await res.arrayBuffer()), type };
 }
 
+/**
+ * Ingests one document. The pipeline: read -> hash -> load -> chunk -> embed -> store.
+ *
+ * The hash covers the file bytes and every setting that changes the output (chunker version, semantic mode, embedding
+ * model, title, category). If it equals the stored hash the document is skipped, which makes re-running `npm run ingest`
+ * cheap and safe. Chunks are embedded as `context + text` so the breadcrumb is part of the vector. A dry run stops after
+ * chunking and prints a sample, with no API calls and no database writes. The extra manifest keys end up in `metadata`.
+ */
 async function ingest(spec: DocumentSpec): Promise<'ingested' | 'unchanged' | 'dry-run'> {
   const { buffer, type } = await readSource(spec);
   if (!type) throw new Error(`Cannot tell the file type; set "type" in the manifest (${SUPPORTED_EXTENSIONS.join(', ')})`);
@@ -84,6 +102,11 @@ async function ingest(spec: DocumentSpec): Promise<'ingested' | 'unchanged' | 'd
   return 'ingested';
 }
 
+/**
+ * Resolves what to ingest (manifest, `--dir`, or a single `--url`), filters with `--only`, and processes the documents
+ * one by one. A failing document is recorded and the rest continue; the exit code is 1 at the end if any failed.
+ * `--prune` removes documents that are no longer in the manifest, only on a full run (not with `--only`).
+ */
 async function main() {
   const urlArg = option('url');
   const { specs: all, unlisted } = urlArg
@@ -112,7 +135,7 @@ async function main() {
     console.log(`${spec.docId}`);
     try {
       const outcome = await ingest(spec);
-      if (outcome === 'unchanged') console.log('   ↺ unchanged, skipped (use --force to redo)');
+      if (outcome === 'unchanged') console.log('   unchanged, skipped (use --force to redo)');
       else if (outcome === 'ingested') console.log('   stored');
     } catch (err) {
       failed.push(spec.docId);

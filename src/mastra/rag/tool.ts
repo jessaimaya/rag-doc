@@ -8,6 +8,10 @@ import { hybridSearch } from './retriever';
  * >= 0.695, unanswerable <= 0.512 on the first eval set). 0 disables the cutoff. Read at call time so evals can A/B it.
  */
 export const DEFAULT_MIN_RELEVANCE = 0.6;
+/**
+ * Current relevance cutoff. Read on every call (not at import) so the eval can run the same agent with the cutoff on and
+ * off. `RAG_MIN_RELEVANCE=0` disables it; a missing or non-numeric value falls back to the default.
+ */
 export function minRelevance(): number {
   const raw = process.env.RAG_MIN_RELEVANCE;
   const value = raw === undefined || raw === '' ? DEFAULT_MIN_RELEVANCE : Number(raw);
@@ -35,6 +39,15 @@ function describeError(err: unknown): string {
   return [err.name, code, err.message].filter(Boolean).join(' ');
 }
 
+/**
+ * The tool's real logic, separated from the Mastra wrapper so tests can inject a fake `search`.
+ *
+ * Three outcomes, each shaped for the model that will read it:
+ * - retrieval failed: returns RETRIEVAL_UNAVAILABLE (a normal result, not an exception, so the agent does not retry in a loop);
+ * - the best rerank score is under the cutoff: returns `no_relevant_documents` with an instruction not to invent an
+ *   answer. This is what makes the assistant say "I don't have that" instead of improvising from weak matches;
+ * - otherwise: the top 5 chunks with title, section, page, source URL and text, numbered so the answer can cite them.
+ */
 export async function runRagSearch(query: string, category?: string, search: Search = hybridSearch) {
   let results: Awaited<ReturnType<Search>>;
   try {
@@ -67,6 +80,10 @@ export async function runRagSearch(query: string, category?: string, search: Sea
   };
 }
 
+/**
+ * The tool the agent calls to search the knowledge base. The description (in Spanish, like the users) tells the model
+ * when to use it and what comes back; the zod `inputSchema` is what the model must fill in: a query and an optional category.
+ */
 export const insuranceRAGTool = createTool({
   id: 'insuranceRAGTool',
   description:

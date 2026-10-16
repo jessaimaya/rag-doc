@@ -34,9 +34,15 @@ const checkOnly = args.includes('--check');
 const onlyArg = args.includes('--only') ? args[args.indexOf('--only') + 1] : undefined;
 const weightsArg = args.includes('--rrf-weights') ? args[args.indexOf('--rrf-weights') + 1] : undefined;
 const rrfWeights = weightsArg ? (weightsArg.split(',').map(Number) as [number, number]) : undefined;
+/**
+ * Depth of each evaluation: 10 results are scored, and the reranker chooses among a pool of 30 candidates.
+ */
 const TOP_K = 10;
 const POOL = 30;
 
+/**
+ * One retrieval configuration under test: which retrievers feed the result and whether the reranker runs.
+ */
 interface Config {
   name: string;
   mode: SearchMode;
@@ -44,6 +50,9 @@ interface Config {
 }
 
 const hybridName = rrfWeights ? `hybrid[${rrfWeights.join(':')}]` : 'hybrid';
+/**
+ * The six configurations compared (each retriever alone and fused, with and without rerank). Running them on the same questions shows what each stage adds.
+ */
 const ALL_CONFIGS: Config[] = [
   { name: 'vector', mode: 'vector', rerank: false },
   { name: 'bm25', mode: 'bm25', rerank: false },
@@ -56,6 +65,21 @@ const ALL_CONFIGS: Config[] = [
 const pct = (x: number) => `${(x * 100).toFixed(0)}%`;
 const fmt = (x: number) => (Number.isNaN(x) ? '–' : x.toFixed(3));
 
+/**
+ * Runs the retrieval evaluation.
+ *
+ * 1. Dataset check: every answerable question must have at least one relevant chunk in the index, otherwise the
+ *    judgments are wrong (or the corpus changed) and the run stops. A judgment matching more than 8 chunks is flagged as too loose.
+ * 2. Embeds all questions once and reuses the vectors in every configuration, so the comparison is fair and cheap.
+ * 3. For each configuration and question, records the rank of the first relevant chunk, the latency and the top-1 score.
+ * 4. Writes a markdown report (Hit@1/3/5, MRR, p50 latency, by question type, missed questions) and a JSON file.
+ * 5. For the rerank configurations, measures how well the top-1 score separates answerable from unanswerable questions
+ *    (AUROC and best cutoff): this is the evidence behind the relevance cutoff used by the tool.
+ *
+ * Further reading:
+ * - Introduction to Information Retrieval, "Evaluation of ranked retrieval results": https://nlp.stanford.edu/IR-book/html/htmledition/evaluation-of-ranked-retrieval-results-1.html
+ * - Fawcett, "An introduction to ROC analysis": https://doi.org/10.1016/j.patrec.2005.10.010
+ */
 async function main() {
   const { runnable: questions } = loadEvalQuestions();
   const chunks = await loadAllChunks();
@@ -79,7 +103,7 @@ async function main() {
 
   const results: Record<string, { ranks: Map<string, number | undefined>; latencies: number[]; top1: Map<string, number> }> = {};
   for (const config of configs) {
-    process.stdout.write(`▶ ${config.name} `);
+    process.stdout.write(`> ${config.name} `);
     const run = { ranks: new Map<string, number | undefined>(), latencies: [] as number[], top1: new Map<string, number>() };
     for (const [i, q] of questions.entries()) {
       const started = performance.now();

@@ -8,6 +8,9 @@ import { summarizeRanks, type EvalQuestion } from '../rag/metrics';
  *   npm run dashboard:data   -> evals/dashboard-data/*.json
  */
 
+/**
+ * Paths and small helpers: `read` loads a JSON file from evals/, `write` saves one dataset for the dashboard.
+ */
 const root = path.resolve('evals');
 const read = <T>(p: string): T => JSON.parse(fs.readFileSync(path.join(root, p), 'utf8'));
 const text = (p: string) => fs.readFileSync(path.join(root, p), 'utf8');
@@ -21,6 +24,9 @@ const questions = read<EvalQuestion[]>('questions.json');
 const retrieval = read<Record<string, { ranks: Record<string, number>; top1: Record<string, number> }>>('results/latest.json');
 const generation = read<{ cutoff: number; summary: any; rows: any[] }[]>('results/generation.json')[0];
 
+/**
+ * Configurations in the order they appear in charts, with a human label for each.
+ */
 const CONFIGS = ['vector', 'bm25', 'hybrid', 'vector+rerank', 'bm25+rerank', 'hybrid+rerank'] as const;
 const slug = (c: string) => c.replace('+', '_');
 const LABELS: Record<string, string> = { vector: 'Vector', bm25: 'BM25', hybrid: 'Hybrid (RRF)', 'vector+rerank': 'Vector + rerank', 'bm25+rerank': 'BM25 + rerank', 'hybrid+rerank': 'Hybrid + rerank' };
