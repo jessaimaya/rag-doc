@@ -8,3 +8,6 @@ dist
 *.db-*
 frontend/.env.local
 frontend/node_modules
+
+# Blog/portfolio assets and source photos (kept locally, not in the repo)
+media/
