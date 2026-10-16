@@ -23,7 +23,7 @@ This guide walks you through setting up PostgreSQL with pgvector on Railway.
 
 **Option B: Add to Existing Project via Dashboard**
 
-1. Go to your Railway project: https://railway.app/project/02b3ef29-8a8c-42f6-abea-835d824c7adb
+1. Go to your Railway project (https://railway.app/dashboard)
 2. Click **"+ New"** button
 3. Select **"Template"**
 4. Search for **"pgvector"**

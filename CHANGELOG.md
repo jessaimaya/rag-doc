@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-10-15 — Frosted-glass UI and preparing the repo to be public
+
+- Chat restyle: one steel-blue hue, Geist + Geist Mono, a frosted frame over a blue photo (tinted veil for light and dark, gradient fallback), pill composer, orb logo. Answers stay on opaque surfaces for readability.
+- Fix: on short screens the empty state opened scrolled to the bottom and hid the headline.
+- `dev.sh` starts backend and frontend together. Next's workspace root is pinned: stray lockfiles above the repo made Turbopack scan the parent tree and panic.
+- Third-party PDFs are no longer committed. `npm run fetch-docs` rebuilds them from each `source_url` (byte-identical to the ingested files). Git history was rewritten to drop them; the repo went from 13 MB to 1 MB.
+- The guide without a public source is `skip: true`; the evals skip the 5 questions that need it (58 of 63 run on a fresh clone) and say so. New GNP starter question.
+- MIT license. README: Security and Credits sections.
+- Dependencies: backend `npm audit fix` (86 to 62 advisories, 0 critical); `next` 16.0.1 to 16.4.2 (frontend 0 advisories). Tests, typecheck, an agent smoke run and `next build` pass.
+
 ## 2026-10-15 — Chat UI
 
 - Calm clinical redesign of the frontend chat (light and dark themes, serif headings, one teal accent).
