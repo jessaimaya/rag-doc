@@ -47,6 +47,8 @@ export function Chat() {
 
   // A long answer should open at its first line, not its last; everything else follows the bottom.
   useEffect(() => {
+    // The empty state must open at its headline; scrolling to the end would hide it on short screens.
+    if (messages.length === 0 && !loading && !error) return;
     const behavior = prefersReducedMotion() ? 'auto' : 'smooth';
     const last = messages[messages.length - 1];
     if (last?.role === 'assistant' && !loading) lastAssistant.current?.scrollIntoView({ behavior, block: 'start' });
@@ -120,143 +122,153 @@ export function Chat() {
   const lastAssistantId = [...messages].reverse().find((m) => m.role === 'assistant')?.id;
 
   return (
-    <div className="flex h-dvh flex-col">
-      <header className="border-b border-line bg-panel">
-        <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3">
-          <span aria-hidden className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-accent text-accent-ink">
-            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
-              <path d="M12 5v14M5 12h14" />
-            </svg>
-          </span>
-          <div className="min-w-0 flex-1">
-            <h1 className="truncate font-serif text-lg font-semibold leading-tight">Asistente de trámites médicos</h1>
-            <p className="truncate text-sm text-muted">IMSS, ISSSTE y seguros privados en México</p>
-          </div>
-          {messages.length > 0 && (
-            <button
-              type="button"
-              onClick={reset}
-              className="shrink-0 rounded-lg border border-line px-3 py-1.5 text-sm transition-colors hover:bg-accent-soft"
+    <div className="flex h-dvh items-center justify-center p-2 sm:p-6">
+      <div className="flex h-full max-h-[56rem] w-full max-w-4xl rounded-[22px] border border-white/40 bg-frame p-1.5 shadow-soft backdrop-blur-xl">
+        <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-2xl bg-panel">
+          <header className="flex items-center gap-3 px-4 py-3 sm:px-5">
+            <span aria-hidden className="orb h-9 w-9 shrink-0 rounded-full" />
+            <div className="min-w-0 flex-1">
+              <h1 className="truncate text-base font-medium leading-tight tracking-tight">Asistente de trámites médicos</h1>
+              <p className="truncate text-sm text-muted">IMSS, ISSSTE y seguros privados en México</p>
+            </div>
+            <span className="hidden shrink-0 items-center gap-1.5 rounded-full bg-accent-soft px-3 py-1 text-xs text-accent sm:flex">
+              <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-ok" />
+              en línea
+            </span>
+            {messages.length > 0 && (
+              <button
+                type="button"
+                onClick={reset}
+                className="shrink-0 rounded-full border border-line px-3.5 py-1.5 text-sm text-accent transition-colors hover:bg-accent-soft"
+              >
+                Nueva conversación
+              </button>
+            )}
+          </header>
+
+          <main className="fade-edges flex-1 overflow-y-auto" aria-label="Conversación">
+            <div
+              className={`mx-auto w-full max-w-2xl px-4 py-6 sm:px-6 ${messages.length === 0 && !loading ? 'flex min-h-full flex-col justify-center' : ''}`}
+              role="log"
+              aria-live="polite"
+              aria-relevant="additions"
             >
-              Nueva conversación
-            </button>
-          )}
-        </div>
-      </header>
-
-      <main className="flex-1 overflow-y-auto" aria-label="Conversación">
-        <div className="mx-auto w-full max-w-3xl px-4 py-8" role="log" aria-live="polite" aria-relevant="additions">
-          {messages.length === 0 && !loading && (
-            <section className="rise">
-              <h2 className="font-serif text-3xl font-semibold leading-tight sm:text-4xl">¿Con qué trámite te ayudo?</h2>
-              <p className="mt-3 max-w-xl text-muted">
-                Respondo con base en documentos públicos del IMSS, el ISSSTE, la CONAMED y aseguradoras, y te indico de dónde sale cada dato.
-                No doy diagnósticos ni consejos médicos.
-              </p>
-              <div className="mt-8 grid gap-3 sm:grid-cols-2">
-                {STARTERS.map((s) => (
-                  <button
-                    key={s.question}
-                    type="button"
-                    onClick={() => send(s.question)}
-                    className="group flex flex-col gap-1 rounded-xl border border-line bg-panel p-4 text-left transition-colors hover:border-accent hover:bg-accent-soft"
-                  >
-                    <span className="text-xs font-semibold uppercase tracking-wider text-accent">{s.topic}</span>
-                    <span className="text-[0.95rem] leading-snug">{s.question}</span>
-                  </button>
-                ))}
-              </div>
-              <p className="mt-6 text-sm text-muted">
-                Demostración: el consultorio «Valle Verde» y sus datos (horarios, precios, cuentas) son ficticios.
-              </p>
-            </section>
-          )}
-
-          <div className="flex flex-col gap-6">
-            {messages.map((m) =>
-              m.role === 'user' ? (
-                <div key={m.id} className="rise flex justify-end">
-                  <p className="max-w-[85%] whitespace-pre-wrap break-words rounded-2xl rounded-br-md bg-user px-4 py-2.5">{m.content}</p>
-                </div>
-              ) : (
-                <article key={m.id} ref={m.id === lastAssistantId ? lastAssistant : undefined} className="rise scroll-mt-4">
-                  <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-muted">Asistente</p>
-                  <div className="rounded-2xl rounded-tl-md border border-line bg-panel px-5 py-4">
-                    <Markdown>{m.content}</Markdown>
+              {messages.length === 0 && !loading && (
+                <section className="rise text-center">
+                  <span aria-hidden className="orb mx-auto block h-14 w-14 rounded-full" />
+                  <h2 className="mt-6 text-balance text-3xl font-medium leading-[1.05] tracking-[-0.035em] sm:text-5xl">
+                    ¿Con qué trámite te ayudo?
+                  </h2>
+                  <p className="mx-auto mt-4 max-w-md text-balance text-[0.95rem] leading-snug text-muted">
+                    Respondo con base en documentos públicos del IMSS, el ISSSTE, la CONAMED y aseguradoras, y te indico de dónde sale cada dato.
+                    No doy diagnósticos ni consejos médicos.
+                  </p>
+                  <div className="mt-8 grid gap-3 text-left sm:grid-cols-2">
+                    {STARTERS.map((s) => (
+                      <button
+                        key={s.question}
+                        type="button"
+                        onClick={() => send(s.question)}
+                        className="group flex flex-col gap-1.5 rounded-2xl border border-line bg-bg p-4 text-left transition-all hover:-translate-y-0.5 hover:border-accent-hi hover:bg-accent-soft hover:shadow-soft"
+                      >
+                        <span className="font-mono text-[0.68rem] uppercase tracking-[0.12em] text-accent">{s.topic}</span>
+                        <span className="text-[0.95rem] leading-snug">{s.question}</span>
+                      </button>
+                    ))}
                   </div>
-                </article>
-              ),
-            )}
+                  <p className="mt-6 font-mono text-[0.68rem] uppercase leading-relaxed tracking-[0.1em] text-muted">
+                    Demostración: el consultorio «Valle Verde» y sus datos son ficticios
+                  </p>
+                </section>
+              )}
 
-            {loading && (
-              <div role="status" className="rise flex items-center gap-3 text-sm text-muted">
-                <span className="flex gap-1" aria-hidden>
-                  <span className="dot h-1.5 w-1.5 rounded-full bg-accent" />
-                  <span className="dot h-1.5 w-1.5 rounded-full bg-accent" />
-                  <span className="dot h-1.5 w-1.5 rounded-full bg-accent" />
-                </span>
-                Buscando en los documentos…
+              <div className="flex flex-col gap-6">
+                {messages.map((m) =>
+                  m.role === 'user' ? (
+                    <div key={m.id} className="rise flex justify-end">
+                      <p className="steel max-w-[85%] whitespace-pre-wrap break-words rounded-2xl rounded-br-md px-4 py-2.5 shadow-soft">{m.content}</p>
+                    </div>
+                  ) : (
+                    <article key={m.id} ref={m.id === lastAssistantId ? lastAssistant : undefined} className="rise scroll-mt-4">
+                      <p className="mb-1.5 font-mono text-[0.68rem] uppercase tracking-[0.12em] text-muted">Asistente</p>
+                      <div className="rounded-2xl rounded-tl-md border border-line bg-bg px-5 py-4">
+                        <Markdown>{m.content}</Markdown>
+                      </div>
+                    </article>
+                  ),
+                )}
+
+                {loading && (
+                  <div role="status" className="rise flex items-center gap-3 text-sm text-muted">
+                    <span className="flex gap-1" aria-hidden>
+                      <span className="dot h-1.5 w-1.5 rounded-full bg-accent" />
+                      <span className="dot h-1.5 w-1.5 rounded-full bg-accent" />
+                      <span className="dot h-1.5 w-1.5 rounded-full bg-accent" />
+                    </span>
+                    Buscando en los documentos…
+                  </div>
+                )}
+
+                {error && (
+                  <div role="alert" className="rise flex flex-wrap items-center gap-3 rounded-2xl bg-danger-soft px-4 py-3 text-sm text-danger">
+                    <span className="min-w-0 flex-1">{error.message}</span>
+                    <button
+                      type="button"
+                      onClick={() => void ask(messages)}
+                      className="rounded-full border border-current px-3.5 py-1.5 font-medium transition-opacity hover:opacity-80"
+                    >
+                      Reintentar
+                    </button>
+                  </div>
+                )}
               </div>
-            )}
+              <div ref={listEnd} />
+            </div>
+          </main>
 
-            {error && (
-              <div role="alert" className="rise flex flex-wrap items-center gap-3 rounded-xl bg-danger-soft px-4 py-3 text-sm text-danger">
-                <span className="min-w-0 flex-1">{error.message}</span>
+          <footer className="pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-1">
+            <div className="mx-auto w-full max-w-2xl px-4 sm:px-6">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  send(input);
+                }}
+                className="flex items-end gap-2 rounded-[1.75rem] border border-line bg-panel p-1.5 shadow-soft focus-within:border-accent-hi focus-within:ring-4 focus-within:ring-accent-hi/20"
+              >
+                <label htmlFor="question" className="sr-only">
+                  Tu pregunta
+                </label>
+                <textarea
+                  id="question"
+                  ref={textarea}
+                  rows={1}
+                  value={input}
+                  maxLength={MAX_INPUT}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={onKeyDown}
+                  placeholder="Escribe tu pregunta sobre un trámite…"
+                  className="max-h-40 min-h-10 flex-1 resize-none bg-transparent px-3.5 py-2 outline-none placeholder:text-muted"
+                  disabled={loading}
+                />
                 <button
-                  type="button"
-                  onClick={() => void ask(messages)}
-                  className="rounded-lg border border-current px-3 py-1.5 font-medium transition-opacity hover:opacity-80"
+                  type="submit"
+                  disabled={loading || !input.trim()}
+                  aria-label="Enviar pregunta"
+                  className="steel grid h-10 w-10 shrink-0 place-items-center rounded-full transition-opacity disabled:opacity-35"
                 >
-                  Reintentar
+                  <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <path d="M12 19V5M5 12l7-7 7 7" />
+                  </svg>
                 </button>
-              </div>
-            )}
-          </div>
-          <div ref={listEnd} />
+              </form>
+              <p className="mt-2 hidden text-center font-mono text-[0.68rem] uppercase tracking-[0.1em] text-muted sm:block">
+                Enter para enviar · Shift+Enter para nueva línea
+                {input.length > MAX_INPUT - 200 && <span className="ml-2 tabular-nums">{input.length}/{MAX_INPUT}</span>}
+              </p>
+            </div>
+          </footer>
         </div>
-      </main>
-
-      <footer className="border-t border-line bg-bg pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">
-        <div className="mx-auto w-full max-w-3xl px-4">
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              send(input);
-            }}
-            className="flex items-end gap-2 rounded-2xl border border-line bg-panel p-2 focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/30"
-          >
-            <label htmlFor="question" className="sr-only">
-              Tu pregunta
-            </label>
-            <textarea
-              id="question"
-              ref={textarea}
-              rows={1}
-              value={input}
-              maxLength={MAX_INPUT}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={onKeyDown}
-              placeholder="Escribe tu pregunta sobre un trámite…"
-              className="max-h-40 min-h-10 flex-1 resize-none bg-transparent px-2 py-2 outline-none placeholder:text-muted"
-              disabled={loading}
-            />
-            <button
-              type="submit"
-              disabled={loading || !input.trim()}
-              aria-label="Enviar pregunta"
-              className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-accent text-accent-ink transition-opacity disabled:opacity-35"
-            >
-              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <path d="M12 19V5M5 12l7-7 7 7" />
-              </svg>
-            </button>
-          </form>
-          <p className="mt-2 text-center text-xs text-muted">
-            Enter para enviar · Shift+Enter para nueva línea
-            {input.length > MAX_INPUT - 200 && <span className="ml-2 tabular-nums">{input.length}/{MAX_INPUT}</span>}
-          </p>
-        </div>
-      </footer>
+      </div>
     </div>
   );
 }

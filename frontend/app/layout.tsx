@@ -1,9 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Newsreader, Public_Sans } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-const publicSans = Public_Sans({ subsets: ["latin"], variable: "--font-public", display: "swap" });
-const newsreader = Newsreader({ subsets: ["latin"], variable: "--font-newsreader", display: "swap" });
+const geist = Geist({ subsets: ["latin"], variable: "--font-geist", display: "swap" });
+const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono", display: "swap" });
 
 export const metadata: Metadata = {
   title: "Asistente de Seguros Médicos",
@@ -13,8 +13,8 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   colorScheme: "light dark",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f4f6f4" },
-    { media: "(prefers-color-scheme: dark)", color: "#0e1413" },
+    { media: "(prefers-color-scheme: light)", color: "#547c90" },
+    { media: "(prefers-color-scheme: dark)", color: "#1b2b36" },
   ],
 };
 
@@ -24,7 +24,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={`${publicSans.variable} ${newsreader.variable}`}>
+    <html lang="es" className={`${geist.variable} ${geistMono.variable}`}>
       <body className="antialiased">{children}</body>
     </html>
   );
