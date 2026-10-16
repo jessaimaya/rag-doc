@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { STARTERS } from '@/lib/starters';
 import type { Source } from '@/lib/sources';
+import type { ClientEvent } from '@/lib/stream';
 import { Markdown } from './Markdown';
 import { Sources } from './Sources';
 
@@ -11,7 +12,7 @@ type ChatError = { message: string };
 
 const MAX_INPUT = 2000;
 const MAX_HISTORY = 30;
-const REQUEST_TIMEOUT_MS = 60_000;
+const REQUEST_TIMEOUT_MS = 120_000;
 
 class ApiError extends Error {
   constructor(public status: number) {
@@ -39,23 +40,27 @@ export function Chat() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<ChatError | null>(null);
+  // 'searching' until the retrieval tool answers, then 'writing' until the first words arrive.
+  const [phase, setPhase] = useState<'searching' | 'writing'>('searching');
 
   const requestId = useRef(0);
+  const controller = useRef<AbortController | null>(null);
   const listEnd = useRef<HTMLDivElement>(null);
   const lastAssistant = useRef<HTMLElement>(null);
   const textarea = useRef<HTMLTextAreaElement>(null);
 
   const prefersReducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // A long answer should open at its first line, not its last; everything else follows the bottom.
+  // A long answer should open at its first line, not its last, and the page must not chase the text while it streams in:
+  // scroll once when a message is added (the answer's first words), not on every update to its content.
+  const lastRole = messages[messages.length - 1]?.role;
   useEffect(() => {
     // The empty state must open at its headline; scrolling to the end would hide it on short screens.
-    if (messages.length === 0 && !loading && !error) return;
+    if (!lastRole && !error) return;
     const behavior = prefersReducedMotion() ? 'auto' : 'smooth';
-    const last = messages[messages.length - 1];
-    if (last?.role === 'assistant' && !loading) lastAssistant.current?.scrollIntoView({ behavior, block: 'start' });
+    if (lastRole === 'assistant') lastAssistant.current?.scrollIntoView({ behavior, block: 'start' });
     else listEnd.current?.scrollIntoView({ behavior, block: 'end' });
-  }, [messages, loading, error]);
+  }, [messages.length, lastRole, error]);
 
   useEffect(() => {
     const el = textarea.current;
@@ -66,8 +71,28 @@ export function Chat() {
 
   const ask = useCallback(async (history: Message[]) => {
     const id = ++requestId.current;
+    controller.current?.abort();
+    const abort = new AbortController();
+    controller.current = abort;
     setLoading(true);
     setError(null);
+    setPhase('searching');
+
+    const assistantId = newId();
+    let text = '';
+    let sources: Source[] | null = null;
+    let frame = 0;
+    // The answer grows word by word; re-render at most once per frame instead of once per token.
+    const show = () => {
+      frame = 0;
+      const content = text;
+      setMessages((prev) =>
+        prev.some((m) => m.id === assistantId)
+          ? prev.map((m) => (m.id === assistantId ? { ...m, content } : m))
+          : [...prev, { id: assistantId, role: 'assistant', content }],
+      );
+    };
+
     try {
       // The backend keeps no memory, so the whole conversation is sent, capped at what the route accepts.
       let payload = history.slice(-MAX_HISTORY);
@@ -76,17 +101,52 @@ export function Chat() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages: payload.map(({ role, content }) => ({ role, content })) }),
-        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+        signal: AbortSignal.any([abort.signal, AbortSignal.timeout(REQUEST_TIMEOUT_MS)]),
       });
-      if (!response.ok) throw new ApiError(response.status);
-      const data = await response.json();
-      if (id !== requestId.current) return; // the conversation was reset while waiting
-      const text = typeof data.text === 'string' ? data.text.trim() : '';
-      if (!text) throw new ApiError(502);
-      const sources: Source[] = Array.isArray(data.sources) ? data.sources : [];
-      setMessages((prev) => [...prev, { id: newId(), role: 'assistant', content: text, sources }]);
+      if (!response.ok || !response.body) throw new ApiError(response.status);
+
+      // Newline-delimited JSON events, see lib/stream.ts.
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() ?? '';
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          let event: ClientEvent;
+          try {
+            event = JSON.parse(line);
+          } catch {
+            continue;
+          }
+          if (id !== requestId.current) return; // the conversation was reset while waiting
+          if (event.type === 'status') setPhase(event.state);
+          else if (event.type === 'text') {
+            text += event.delta;
+            if (!frame) frame = requestAnimationFrame(show);
+          } else if (event.type === 'done') sources = event.sources;
+          else throw new ApiError(502);
+        }
+      }
+      if (id !== requestId.current) return;
+      if (!sources || !text.trim()) throw new ApiError(502);
+      cancelAnimationFrame(frame);
+      const final = text.trim();
+      const done = sources;
+      setMessages((prev) =>
+        prev.some((m) => m.id === assistantId)
+          ? prev.map((m) => (m.id === assistantId ? { ...m, content: final, sources: done } : m))
+          : [...prev, { id: assistantId, role: 'assistant', content: final, sources: done }],
+      );
     } catch (err) {
       if (id !== requestId.current) return;
+      cancelAnimationFrame(frame);
+      // A half-written answer without its sources must not stay on screen as if it were complete.
+      setMessages((prev) => prev.filter((m) => m.id !== assistantId));
       console.error('Chat request failed', err);
       setError(describeError(err));
     } finally {
@@ -108,6 +168,7 @@ export function Chat() {
 
   const reset = () => {
     requestId.current++;
+    controller.current?.abort();
     setMessages([]);
     setInput('');
     setError(null);
@@ -123,6 +184,8 @@ export function Chat() {
   };
 
   const lastAssistantId = [...messages].reverse().find((m) => m.role === 'assistant')?.id;
+  // Writing has started once the answer's message exists; before that the dots show what the assistant is doing.
+  const streamingId = loading && lastRole === 'assistant' ? lastAssistantId : undefined;
 
   return (
     <div className="flex h-dvh items-center justify-center p-2 sm:p-6">
@@ -155,6 +218,7 @@ export function Chat() {
               role="log"
               aria-live="polite"
               aria-relevant="additions"
+              aria-busy={loading}
             >
               {messages.length === 0 && !loading && (
                 <section className="rise text-center">
@@ -193,7 +257,16 @@ export function Chat() {
                     </div>
                   ) : (
                     <article key={m.id} ref={m.id === lastAssistantId ? lastAssistant : undefined} className="rise scroll-mt-4">
-                      <p className="mb-1.5 font-mono text-[0.68rem] uppercase tracking-[0.12em] text-muted">Asistente</p>
+                      <p className="mb-1.5 flex items-center gap-2 font-mono text-[0.68rem] uppercase tracking-[0.12em] text-muted">
+                        Asistente
+                        {m.id === streamingId && (
+                          <span className="flex gap-0.5" aria-hidden>
+                            <span className="dot h-1 w-1 rounded-full bg-accent" />
+                            <span className="dot h-1 w-1 rounded-full bg-accent" />
+                            <span className="dot h-1 w-1 rounded-full bg-accent" />
+                          </span>
+                        )}
+                      </p>
                       <div className="rounded-2xl rounded-tl-md border border-line bg-bg px-5 py-4">
                         <Markdown>{m.content}</Markdown>
                       </div>
@@ -202,14 +275,14 @@ export function Chat() {
                   ),
                 )}
 
-                {loading && (
+                {loading && lastRole === 'user' && (
                   <div role="status" className="rise flex items-center gap-3 text-sm text-muted">
                     <span className="flex gap-1" aria-hidden>
                       <span className="dot h-1.5 w-1.5 rounded-full bg-accent" />
                       <span className="dot h-1.5 w-1.5 rounded-full bg-accent" />
                       <span className="dot h-1.5 w-1.5 rounded-full bg-accent" />
                     </span>
-                    Buscando en los documentos…
+                    {phase === 'searching' ? 'Buscando en los documentos…' : 'Leyendo los pasajes y redactando…'}
                   </div>
                 )}
 

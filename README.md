@@ -7,7 +7,7 @@ A Spanish-language RAG assistant that helps patients with medical insurance pape
 
 ## What it does today
 
-- Chat web UI (Next.js, light and dark themes, a frosted card over a soft blue photo) that talks to a Mastra agent and renders its Markdown answers, with the retrieved passages behind each answer as expandable source cards (document, section, page, relevance, original link). See [frontend/README.md](frontend/README.md).
+- Chat web UI (Next.js, light and dark themes, a frosted card over a soft blue photo) that talks to a Mastra agent and renders its Markdown answers as they are written (streaming), with the retrieved passages behind each answer as expandable source cards (document, section, page, relevance, original link). See [frontend/README.md](frontend/README.md).
 - The agent searches a knowledge base with **hybrid retrieval**: pgvector similarity (Voyage `voyage-3`) and BM25, merged with Reciprocal Rank Fusion and reranked with Voyage `rerank-2.5`. It answers in Spanish with steps, requirements and citations (document, section, page, source URL).
 - Documents are described in `documents/manifest.json` and can be PDF, DOCX, HTML, Markdown or TXT, local or remote. Ingestion uses structure-aware + semantic chunking. See [KNOWLEDGE_BASE_SETUP.md](KNOWLEDGE_BASE_SETUP.md).
 - A relevance cutoff: when nothing retrieved is relevant enough, the assistant says so instead of improvising, and its instructions tell it to state only what the retrieved passages say.
@@ -88,7 +88,7 @@ What protects the app, and what does not:
 - **Backend API key.** The Mastra server refuses to start without `MASTRA_API_KEY` unless `NODE_ENV=development`, and compares keys in constant time. The browser never sees the key: the Next.js `/api/chat` route adds it server-side.
 - **Rate limiting** per client IP on both the backend and the chat route. It is in memory, so it fits one instance. The client IP is the rightmost `x-forwarded-for` entry, which is only correct behind exactly one trusted proxy.
 - **Input validation** on the chat route: message count, roles and per-role length limits.
-- **Minimal responses.** The chat route returns only `{ text, sources }`. The raw agent response also contains provider headers (organization id, rate limits), token usage and tool arguments, so it is never forwarded. Source links are only rendered for `http(s)` URLs.
+- **Minimal responses.** The chat route streams newline-delimited JSON events (`status`, `text`, `done`, `error`) built from an allow-list of the agent's events. The raw agent stream also contains the system prompt, the model's reasoning, token usage, tool arguments and provider headers (organization id, rate limits), so none of it is forwarded. Closing the tab or resetting the chat cancels the upstream request, and a backend that goes silent for 45 s is cut off. Source links are only rendered for `http(s)` URLs.
 - **Grounding as a safety control.** The assistant states only what retrieved passages say, marks gaps as `[DATA UNCERTAIN]`, refuses medical advice and points to emergency care instead. This is measured by the evals, not guaranteed.
 - **No secrets in git.** `.env` is ignored and the history was scanned for keys and connection strings. Only `.env.example` with placeholders is committed.
 - **Dependencies.** `npm audit` on production dependencies: frontend 0 advisories; backend 62 (0 critical, 15 high), almost all transitive through Mastra's build and telemetry tooling. Clearing the rest needs a breaking Mastra major upgrade, which is not done yet.
@@ -106,16 +106,15 @@ Done:
 - Hybrid retrieval (vector + BM25, rank fusion) with a reranker, a relevance cutoff, and citations.
 - Retrieval evals (hit rate, MRR for six setups) and generation evals (correctness, faithfulness, refusals), a stricter grounding prompt measured on all 63 questions, and an eval dashboard.
 - Chat UI redesign: rendered Markdown, document-matched starter questions, error and retry states, then a frosted-glass restyle.
-- Source cards in the chat, and fail-fast errors when retrieval is down.
+- Streaming answers, source cards in the chat, and fail-fast errors when retrieval is down.
 - Public-repo hygiene: secrets scan of the full history, MIT license, third-party PDFs rebuilt from source URLs (`npm run fetch-docs`), critical dependency advisories cleared, `dev.sh`.
 
 Next, in the order I would do them:
 
-1. **Streaming answers**, so long answers appear as they are written.
-2. **Stronger evals**: a larger question set that includes real users' questions, and a Sonnet-judged run of the final prompt so the headline numbers do not depend on the cheap judge.
-3. **Validated config at startup** (one `config.ts` for the backend and the RAG module).
-4. **A larger public corpus**, and OCR for scanned PDFs. Move BM25 into Postgres if the corpus grows past tens of thousands of chunks.
-5. **Public demo** deployed with the fictional clinic: run `check-db` and `ingest` against the deployed database, then record the demo.
+1. **Stronger evals**: a larger question set that includes real users' questions, and a Sonnet-judged run of the final prompt so the headline numbers do not depend on the cheap judge.
+2. **Validated config at startup** (one `config.ts` for the backend and the RAG module).
+3. **A larger public corpus**, and OCR for scanned PDFs. Move BM25 into Postgres if the corpus grows past tens of thousands of chunks.
+4. **Public demo** deployed with the fictional clinic: run `check-db` and `ingest` against the deployed database, then record the demo.
 
 Later:
 

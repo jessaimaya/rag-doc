@@ -12,7 +12,7 @@ export interface Source {
 const MAX_SOURCES = 6;
 const MAX_EXCERPT = 700;
 
-const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null;
+export const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null;
 
 /** Only plain web links are shown as links; anything else (javascript:, data:, ...) is dropped. */
 function safeUrl(value: unknown): string | undefined {
@@ -39,27 +39,14 @@ function toSource(item: unknown): Source | null {
 }
 
 /**
- * Pulls the retrieved passages out of the backend's agent response (every call to the retrieval tool, across all steps).
- * The route sends only this to the browser: the raw response also carries provider headers, token usage and tool arguments.
+ * Turns the retrieval tool's raw `results` arrays (one per search) into the cards shown under an answer: deduplicated across
+ * searches, sorted by relevance, at most MAX_SOURCES. The browser only ever gets this; the raw agent output also carries
+ * provider details, token usage and tool arguments.
  */
-export function extractSources(data: unknown): Source[] {
-  if (!isRecord(data)) return [];
-  const results: unknown[] = [];
-  const steps = Array.isArray(data.steps) ? data.steps : [];
-  for (const step of steps) {
-    const toolResults = isRecord(step) && Array.isArray(step.toolResults) ? step.toolResults : [];
-    for (const tr of toolResults) {
-      const payload = isRecord(tr) ? tr.payload : undefined;
-      const result = isRecord(payload) ? payload.result : undefined;
-      if (isRecord(payload) && payload.toolName === 'insuranceRAGTool' && isRecord(result) && Array.isArray(result.results)) {
-        results.push(...result.results);
-      }
-    }
-  }
-
+export function collectSources(resultArrays: unknown[]): Source[] {
   const seen = new Set<string>();
   const sources: Source[] = [];
-  for (const item of results) {
+  for (const item of resultArrays.flatMap((r) => (Array.isArray(r) ? r : []))) {
     const source = toSource(item);
     if (!source) continue;
     const key = [source.title, source.section, source.page, source.excerpt.slice(0, 80)].join('|');

@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-15 — Streaming answers
+
+- Answers appear as they are written: first words after about 3.7 s instead of the whole answer after about 8 s, with "Buscando en los documentos…" then "Leyendo los pasajes y redactando…" before that. Source cards arrive when the answer is complete.
+- `/api/chat` now streams newline-delimited JSON (`status`, `text`, `done`, `error`) converted from Mastra's `/stream` events by an allow-list parser (`frontend/lib/stream.ts`, 7 tests). The raw stream includes the system prompt (`step-start`) and the model's reasoning, which are never forwarded.
+- Cancellation: resetting the chat or closing the tab aborts the upstream request; a backend silent for 45 s is cut off with an error. A stream that dies half-way removes the partial answer and shows the retry banner, so an answer without its sources is never left on screen as if it were complete.
+- UI: the page scrolls once when an answer starts and then stays put, so it does not fight a reader; `aria-busy` is set while streaming so screen readers announce the finished answer, not every word.
+- `npm test` also runs `frontend/lib/**/*.test.ts` (55 tests).
+
 ## 2026-10-15 — Source cards, and a leak in the chat route
 
 - Each answer now has an expandable "Pasajes consultados" list: one card per retrieved passage with document, section, page, a relevance bar, the passage text and a link to the original document. Passages are deduplicated across searches, sorted by relevance, at most 6.
